@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "math.h": "c",
+        "stdlib.h": "c",
+        "conflictSerializable.h": "c",
+        "functional": "c",
+        "utils.h": "c",
+        "immintrin.h": "c"
+    },
+    // "files.exclude": "**/**.o"
+}
