@@ -6,6 +6,7 @@
         "functional": "c",
         "utils.h": "c",
         "queue.h": "c",
+        "khan.h": "c",
         "immintrin.h": "c"
     },
     // "files.exclude": "**/**.o"

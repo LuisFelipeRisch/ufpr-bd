@@ -1,5 +1,14 @@
 #include "utils.h"
 
+uint *allocUintArray(uint size){
+  uint *array = calloc(size, sizeof(uint));
+
+  if(!array)
+    return NULL;
+
+  return array;
+}
+
 int *allocIntArray(uint size){
   int *array = calloc(size, sizeof(int));
 
@@ -30,6 +39,27 @@ int **allocIntMatrix(uint row, uint col){
   return matrix;
 }
 
+uint **allocUintMatrix(uint row, uint col){
+  uint **matrix = calloc(row, sizeof(uint *));
+
+  if(!matrix)
+    return NULL;
+
+  for (uint i = 0; i < row; i++)
+  {
+    matrix[i] = allocUintArray(col);
+
+    if(!matrix[i]){
+      for (uint j = i; j >= 0; j--)
+        free(matrix[j]);
+      free(matrix);
+      return NULL;
+    }
+  }
+
+  return matrix;
+}
+
 int *initIntArrayWith(int number, uint size){
   int *array = allocIntArray(size);
 
@@ -41,8 +71,33 @@ int *initIntArrayWith(int number, uint size){
   return array;
 }
 
+uint *initUintArrayWith(uint number, uint size){
+  uint *array = allocUintArray(size);
+
+  if(!array)
+    return NULL;
+
+  for (uint i = 0; i < size; i++)
+    array[i] = number;
+
+  return array;
+}
+
 int **initIntMatrixWith(int number, uint row, uint col){
   int **matrix = allocIntMatrix(row, col);
+
+  if(!matrix)
+    return NULL;
+
+  for (uint i = 0; i < row; i++)
+    for (uint j = 0; j < col; j++)
+      matrix[i][j] = number;
+
+  return matrix;
+}
+
+uint **initUintMatrixWith(uint number, uint row, uint col){
+  uint **matrix = allocUintMatrix(row, col);
 
   if(!matrix)
     return NULL;

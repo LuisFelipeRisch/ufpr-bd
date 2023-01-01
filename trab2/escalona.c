@@ -3,6 +3,7 @@
 #include <string.h>
 #include "utils.h"
 #include "conflictSerializable.h"
+#include "khan.h"
 
 void sortMatrixLinesByTime(char ***matrix, uint row){
   uint i, j, minIdx;
@@ -27,10 +28,9 @@ void sortMatrixLinesByTime(char ***matrix, uint row){
 int main(){
   char line[256];
   char *splittedLine = NULL;
-  uint row, splitsCount, *dependencyGraphSize;
+  uint row, splitsCount, *dependencyGraphSize, **dependencyGraph;
   dependencyGraphSize = malloc(sizeof(uint));
   char ***matrix = malloc(sizeof(char **));
-  int **dependencyGraph;
 
   row = 0;
   while (fgets(line, sizeof(line), stdin))
@@ -54,25 +54,13 @@ int main(){
 
   sortMatrixLinesByTime(matrix, row);
 
-  for (uint i = 0; i < row; i++)
-  {
-    for (uint j = 0; j < COL; j++)
-    {
-      printf("%s ", matrix[i][j]);
-    }
-    printf("\n");
-  }
-
   dependencyGraph = buildDependencyGraph(matrix, row, dependencyGraphSize);
+  Queue *queue = initQueue();
 
-  for (uint i = 0; i < *dependencyGraphSize; i++)
-  {
-    for (uint j = 0; j < *dependencyGraphSize; j++)
-    {
-      printf("%d ", dependencyGraph[i][j]);
-    }
-    printf("\n");
-  }
+  if(khan(dependencyGraph, *dependencyGraphSize, queue))
+    printf("cicle");
+  else
+    printf("not cicle");
 
   return 0;
 }

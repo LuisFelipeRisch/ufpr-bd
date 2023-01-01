@@ -6,6 +6,7 @@
       OBJS = ./utils.o\
 						 ./conflictSerializable.o \
 						 ./queue.o \
+						 ./khan.o \
 						 ./$(PROG).o
 
 

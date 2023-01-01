@@ -12,6 +12,8 @@
 				"./utils.h",
 				"./queue.c",
 				"./queue.h",
+				"./khan.c",
+				"./khan.h",
 				"./conflictSerializable.c",
 				"./conflictSerializable.h",
 				"-lm",

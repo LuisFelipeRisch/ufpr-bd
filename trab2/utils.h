@@ -15,9 +15,13 @@
 #define WRITE "W"
 #define COMMIT "C"
 
+uint *allocUintArray(uint size);
 int *allocIntArray(uint size);
 int **allocIntMatrix(uint row, uint col);
+uint **allocUintMatrix(uint row, uint col);
 int *initIntArrayWith(int number, uint size);
+uint *initUintArrayWith(uint number, uint size);
 int **initIntMatrixWith(int number, uint row, uint col);
+uint **initUintMatrixWith(uint number, uint row, uint col);
 
 #endif

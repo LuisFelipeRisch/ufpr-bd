@@ -10,9 +10,9 @@ uint findHigherTransactionNumber(char ***matrix, uint row){
   return higher;
 }
 
-int **buildDependencyGraph(char ***matrix, uint row, uint *dependencyGraphSize){
+uint **buildDependencyGraph(char ***matrix, uint row, uint *dependencyGraphSize){
   *dependencyGraphSize = findHigherTransactionNumber(matrix, row);
-  int **dependencyGraph = initIntMatrixWith(0, *dependencyGraphSize, *dependencyGraphSize);
+  uint **dependencyGraph = initUintMatrixWith(0, *dependencyGraphSize, *dependencyGraphSize);
   if(!dependencyGraph)
     return NULL;
 
