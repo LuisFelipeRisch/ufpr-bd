@@ -5,6 +5,7 @@
       PROG = escalona
       OBJS = ./utils.o\
 						 ./conflictSerializable.o \
+						 ./queue.o \
 						 ./$(PROG).o
 
 

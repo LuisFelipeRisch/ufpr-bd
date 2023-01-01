@@ -5,6 +5,7 @@
         "conflictSerializable.h": "c",
         "functional": "c",
         "utils.h": "c",
+        "queue.h": "c",
         "immintrin.h": "c"
     },
     // "files.exclude": "**/**.o"

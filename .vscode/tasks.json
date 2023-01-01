@@ -10,6 +10,8 @@
 				"./escalona.c",
 				"./utils.c",
 				"./utils.h",
+				"./queue.c",
+				"./queue.h",
 				"./conflictSerializable.c",
 				"./conflictSerializable.h",
 				"-lm",
