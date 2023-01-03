@@ -108,3 +108,34 @@ uint **initUintMatrixWith(uint number, uint row, uint col){
 
   return matrix;
 }
+
+Array *indexFinishedScaling(char ***matrix, uint row){
+  int indexOfElem;
+  uint currentTransaction;
+  Array *activeTransactions = initArray(START_SIZE);
+  if(!activeTransactions)
+    return NULL;
+
+  Array *indexedScaling = initArray(START_SIZE);
+  if(!indexedScaling){
+    freeArray(activeTransactions);
+    return NULL;
+  }
+
+  for (uint i = 0; i < row; i++)
+  {
+    currentTransaction = atoi(matrix[i][TRANSACTION_INDEX]);
+    indexOfElem = checkElemExistence(activeTransactions, currentTransaction);
+
+    if(indexOfElem == -1 && strcmp(matrix[i][OPERATION_INDEX], COMMIT))
+      push(activeTransactions, currentTransaction);
+    else if(indexOfElem != -1 && !strcmp(matrix[i][OPERATION_INDEX], COMMIT))
+      activeTransactions = removeElem(activeTransactions, indexOfElem);
+
+    if(isEmptyArray(activeTransactions))
+      push(indexedScaling, i);
+  }
+
+  free(activeTransactions);
+  return indexedScaling;
+}

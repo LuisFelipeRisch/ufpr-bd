@@ -13,7 +13,9 @@ typedef struct {
 
 Array *initArray(uint initialSize);
 int push(Array *array, uint element);
-Array *removeElem(Array *array, uint element);
+Array *removeElem(Array *array, uint indexToRemove);
 void freeArray(Array *array);
+int checkElemExistence(Array *array, uint element);
+int isEmptyArray(Array *array);
 
 #endif

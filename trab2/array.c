@@ -36,21 +36,20 @@ void freeArray(Array *array) {
   free(array);
 }
 
-Array *removeElem(Array *array, uint element){
+int checkElemExistence(Array *array, uint element){
+  int index = -1;
+
+  for(uint i = 0; i < array->used; i++)
+    if(array->array[i] == element)
+      index = i;
+
+  return index;
+}
+
+Array *removeElem(Array *array, uint indexToRemove){
   Array *temp = initArray(array->size);
   if(!temp)
     return array;
-
-  int indexToRemove = -1;
-  for(uint i = 0; i < array->used; i++)
-    if(array->array[i] == element)
-      indexToRemove = i;
-
-  if(indexToRemove == -1)
-  {
-    freeArray(temp);
-    return array;
-  }
 
   memcpy(temp->array, array->array, indexToRemove * sizeof(uint));
   memcpy(temp->array + indexToRemove, array->array + indexToRemove + 1, (array->size - indexToRemove - 1) * sizeof(uint));
@@ -58,4 +57,8 @@ Array *removeElem(Array *array, uint element){
   freeArray(array);
 
   return temp;
+}
+
+int isEmptyArray(Array *array){
+  return array->used == 0;
 }

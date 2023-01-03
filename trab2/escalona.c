@@ -5,26 +5,6 @@
 #include "conflictSerializable.h"
 #include "khan.h"
 
-void sortMatrixLinesByTime(char ***matrix, uint row){
-  uint i, j, minIdx;
-
-  for (i = 0; i < row - 1; i++)
-  {
-    minIdx = i;
-
-    for (j = i+1; j < row; j++)
-      if(atoi(matrix[j][TIME_INDEX]) < atoi(matrix[minIdx][TIME_INDEX]))
-        minIdx = j;
-
-    if(minIdx != i)
-    {
-      char **row = matrix[i];
-      matrix[i] = matrix[minIdx];
-      matrix[minIdx] = row;
-    }
-  }
-}
-
 int main(){
   char line[256];
   char *splittedLine = NULL;
@@ -52,15 +32,19 @@ int main(){
     row++;
   }
 
-  sortMatrixLinesByTime(matrix, row);
+  Array *indexedScaling = indexFinishedScaling(matrix, row);
+  uint startIndex = 0;
+  for (uint i = 0; i < indexedScaling->used; i++){
+    dependencyGraph = buildDependencyGraph(matrix, startIndex, indexedScaling->array[i], dependencyGraphSize);
+    Queue *queue = initQueue();
 
-  dependencyGraph = buildDependencyGraph(matrix, row, dependencyGraphSize);
-  Queue *queue = initQueue();
+    if(khan(dependencyGraph, *dependencyGraphSize, queue))
+      printf("cicle");
+    else
+      printf("not cicle");
 
-  if(khan(dependencyGraph, *dependencyGraphSize, queue))
-    printf("cicle");
-  else
-    printf("not cicle");
+    startIndex = indexedScaling->array[i] + 1;
+  }
 
   return 0;
 }

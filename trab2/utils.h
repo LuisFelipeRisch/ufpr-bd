@@ -4,12 +4,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "array.h"
 
 #define COL 4
+
 #define TIME_INDEX 0
 #define TRANSACTION_INDEX 1
 #define OPERATION_INDEX 2
 #define ATTRIBUTE_INDEX 3
+
+#define START_SIZE 5
 
 #define READ "R"
 #define WRITE "W"
@@ -23,5 +27,6 @@ int *initIntArrayWith(int number, uint size);
 uint *initUintArrayWith(uint number, uint size);
 int **initIntMatrixWith(int number, uint row, uint col);
 uint **initUintMatrixWith(uint number, uint row, uint col);
+Array *indexFinishedScaling(char ***matrix, uint row);
 
 #endif

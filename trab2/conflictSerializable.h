@@ -6,6 +6,6 @@
 #include "utils.h"
 #include <string.h>
 
-uint **buildDependencyGraph(char ***matrix, uint row, uint *dependencyGraphSize);
+uint **buildDependencyGraph(char ***matrix, uint startIndex, uint endIndex, uint *dependencyGraphSize);
 
 #endif
