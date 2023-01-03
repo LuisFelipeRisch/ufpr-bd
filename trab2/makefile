@@ -7,6 +7,7 @@
 						 ./conflictSerializable.o \
 						 ./queue.o \
 						 ./khan.o \
+						 ./array.o \
 						 ./$(PROG).o
 
 
