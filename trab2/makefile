@@ -8,6 +8,7 @@
 						 ./queue.o \
 						 ./khan.o \
 						 ./array.o \
+						 ./equivalentView.o \
 						 ./$(PROG).o
 
 

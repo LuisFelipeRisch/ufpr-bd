@@ -19,6 +19,9 @@
 #define WRITE "W"
 #define COMMIT "C"
 
+#define INITIAL_TRANS_IDENTIFIER "I"
+#define FINAL_TRANS_IDENTIFIER "F"
+
 uint *allocUintArray(uint size);
 int *allocIntArray(uint size);
 int **allocIntMatrix(uint row, uint col);
@@ -28,5 +31,10 @@ uint *initUintArrayWith(uint number, uint size);
 int **initIntMatrixWith(int number, uint row, uint col);
 uint **initUintMatrixWith(uint number, uint row, uint col);
 Array *indexFinishedScaling(char ***matrix, uint row);
+void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex);
+int getUniqAttributesSchedule(char ***matrix, char **attributes, int *attributesCount, uint startIndex, uint endIndex);
+int getActiveTransactions(char ***matrix, char **activeTrans, int *activeTransCount, uint startIndex, uint endIndex);
+int getIndexOfValue(char *value, char **matrix, int matrixSize);
+char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, uint startIndex, uint endIndex);
 
 #endif

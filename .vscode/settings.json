@@ -3,12 +3,15 @@
         "math.h": "c",
         "stdlib.h": "c",
         "conflictSerializable.h": "c",
+        "equivalentView.h": "c",
         "functional": "c",
         "utils.h": "c",
         "queue.h": "c",
         "khan.h": "c",
         "array.h": "c",
-        "immintrin.h": "c"
+        "immintrin.h": "c",
+        "algorithm": "c"
     },
+    "editor.formatOnSave": true
     // "files.exclude": "**/**.o"
 }

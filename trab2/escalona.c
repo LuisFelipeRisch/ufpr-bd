@@ -3,9 +3,13 @@
 #include <string.h>
 #include "utils.h"
 #include "conflictSerializable.h"
+#include "equivalentView.h"
 #include "khan.h"
 
-int main(){
+#define N 4
+
+int main()
+{
   char line[256];
   char *splittedLine = NULL;
   uint row, splitsCount, *dependencyGraphSize, **dependencyGraph;
@@ -24,7 +28,7 @@ int main(){
     {
       matrix[row][splitsCount] = calloc(strlen(splittedLine), sizeof(char));
       memcpy(matrix[row][splitsCount], splittedLine, strlen(splittedLine));
-      splittedLine = strtok (NULL, " ");
+      splittedLine = strtok(NULL, " ");
       splitsCount++;
     }
 
@@ -33,18 +37,43 @@ int main(){
   }
 
   Array *indexedScaling = indexFinishedScaling(matrix, row);
-  uint startIndex = 0;
-  for (uint i = 0; i < indexedScaling->used; i++){
-    dependencyGraph = buildDependencyGraph(matrix, startIndex, indexedScaling->array[i], dependencyGraphSize);
+
+  uint startIndex = 0, endIndex;
+  int cycle, equivalentView, activeTransCount;
+  char **activeTrans;
+
+  for (uint i = 0; i < indexedScaling->used; i++)
+  {
+    endIndex = indexedScaling->array[i];
+    activeTransCount = 0;
+    activeTrans = malloc(sizeof(char *));
+    if (!activeTrans)
+      return -1;
+
+    getActiveTransactions(matrix, activeTrans, &activeTransCount, startIndex, endIndex);
+
+    dependencyGraph = buildDependencyGraph(matrix, startIndex, endIndex, dependencyGraphSize);
+
     Queue *queue = initQueue();
+    cycle = khan(dependencyGraph, *dependencyGraphSize, queue);
 
-    if(khan(dependencyGraph, *dependencyGraphSize, queue))
-      printf("cicle");
-    else
-      printf("not cicle");
+    equivalentView = checkEquivalencyView(matrix, activeTrans, activeTransCount, startIndex, endIndex);
 
-    startIndex = indexedScaling->array[i] + 1;
+    printf("%d ", i + 1);
+    for (uint j = 0; j < activeTransCount; j++)
+    {
+      printf("%s", activeTrans[j]);
+      if (j != activeTransCount - 1)
+        printf(",");
+    }
+    printf(" %s", cycle ? "NS" : "SS");
+    printf(" %s\n", equivalentView ? "SV" : "NV");
+
+    startIndex = endIndex + 1;
+    free(activeTrans);
   }
+
+  // QuickPerm();
 
   return 0;
 }

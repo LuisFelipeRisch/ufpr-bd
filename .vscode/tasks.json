@@ -18,6 +18,8 @@
 				"./array.h",
 				"./conflictSerializable.c",
 				"./conflictSerializable.h",
+				"./equivalentView.h",
+				"./equivalentView.c",
 				"-lm",
 				"-o",
 				"${fileDirname}/bin/${fileBasenameNoExtension}"
