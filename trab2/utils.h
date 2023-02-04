@@ -36,5 +36,6 @@ int getUniqAttributesSchedule(char ***matrix, char **attributes, int *attributes
 int getActiveTransactions(char ***matrix, char **activeTrans, int *activeTransCount, uint startIndex, uint endIndex);
 int getIndexOfValue(char *value, char **matrix, int matrixSize);
 char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, uint startIndex, uint endIndex);
+char ***readEntryFromStdin(int *linesQnt);
 
 #endif

@@ -6,37 +6,18 @@
 #include "equivalentView.h"
 #include "khan.h"
 
-#define N 4
-
 int main()
 {
-  char line[256];
-  char *splittedLine = NULL;
-  uint row, splitsCount, *dependencyGraphSize, **dependencyGraph;
+  char ***matrix;
+  int linesQnt;
+  uint *dependencyGraphSize, **dependencyGraph;
   dependencyGraphSize = malloc(sizeof(uint));
-  char ***matrix = malloc(sizeof(char **));
 
-  row = 0;
-  while (fgets(line, sizeof(line), stdin))
-  {
-    matrix[row] = calloc(COL, sizeof(char *));
+  matrix = readEntryFromStdin(&linesQnt);
+  if (!matrix)
+    return EXIT_FAILURE;
 
-    line[strcspn(line, "\n")] = 0;
-    splittedLine = strtok(line, " ");
-    splitsCount = 0;
-    while (splittedLine != NULL && splitsCount >= 0 && splitsCount <= 3)
-    {
-      matrix[row][splitsCount] = calloc(strlen(splittedLine), sizeof(char));
-      memcpy(matrix[row][splitsCount], splittedLine, strlen(splittedLine));
-      splittedLine = strtok(NULL, " ");
-      splitsCount++;
-    }
-
-    free(splittedLine);
-    row++;
-  }
-
-  Array *indexedScaling = indexFinishedScaling(matrix, row);
+  Array *indexedScaling = indexFinishedScaling(matrix, linesQnt);
 
   uint startIndex = 0, endIndex;
   int cycle, equivalentView, activeTransCount;

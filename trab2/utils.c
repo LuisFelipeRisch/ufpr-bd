@@ -325,3 +325,58 @@ char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, 
 
   return newMatrix;
 }
+
+char ***readEntryFromStdin(int *linesQnt)
+{
+  int i, j, splitsCount;
+  char ***matrix, *splittedLine, line[256];
+
+  *linesQnt = 0;
+  matrix = malloc(sizeof(char **));
+  if (!matrix)
+    return NULL;
+
+  while (fgets(line, sizeof(line), stdin))
+  {
+    matrix[*linesQnt] = calloc(COL, sizeof(char *));
+    if (!matrix)
+    {
+      for (i = *linesQnt - 1; i >= 0; i--)
+        free(matrix[i]);
+      free(matrix);
+
+      return NULL;
+    }
+
+    line[strcspn(line, "\n")] = 0;
+    splittedLine = strtok(line, " ");
+    splitsCount = 0;
+
+    while (splittedLine != NULL && splitsCount >= 0 && splitsCount <= 3)
+    {
+      matrix[*linesQnt][splitsCount] = calloc(sizeof(splittedLine), sizeof(char));
+      if (!matrix[*linesQnt][splitsCount])
+      {
+        for (i = *linesQnt; i >= 0; i--)
+          for (j = splitsCount - 1; j >= 0; j--)
+            free(matrix[i][j]);
+
+        for (i = *linesQnt; i >= 0; i--)
+          free(matrix[i]);
+
+        free(matrix);
+
+        return NULL;
+      }
+
+      memcpy(matrix[*linesQnt][splitsCount], splittedLine, sizeof(splittedLine));
+
+      splittedLine = strtok(NULL, " ");
+      splitsCount++;
+    }
+
+    (*linesQnt)++;
+  }
+
+  return matrix;
+}
