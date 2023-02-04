@@ -1,5 +1,21 @@
 #include "utils.h"
 
+uint *allocUintArray(uint size);
+int *allocIntArray(uint size);
+int **allocIntMatrix(uint row, uint col);
+uint **allocUintMatrix(uint row, uint col);
+int *initIntArrayWith(int number, uint size);
+uint *initUintArrayWith(uint number, uint size);
+int **initIntMatrixWith(int number, uint row, uint col);
+uint **initUintMatrixWith(uint number, uint row, uint col);
+int *delimitSchedules(char ***matrix, int linesQnt, int *indexedQnt);
+void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex);
+int getUniqAttributesSchedule(char ***matrix, char **attributes, int *attributesCount, uint startIndex, uint endIndex);
+int getActiveTransactions(char ***matrix, char **activeTrans, int *activeTransCount, uint startIndex, uint endIndex);
+int getIndexOfValue(char *value, char **matrix, int matrixSize);
+char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, uint startIndex, uint endIndex);
+char ***readEntryFromStdin(int *linesQnt);
+
 uint *allocUintArray(uint size)
 {
   uint *array = calloc(size, sizeof(uint));
@@ -119,37 +135,106 @@ uint **initUintMatrixWith(uint number, uint row, uint col)
   return matrix;
 }
 
-Array *indexFinishedScaling(char ***matrix, uint row)
+int *delimitSchedules(char ***matrix, int linesQnt, int *indexedQnt)
 {
-  int indexOfElem;
-  uint currentTransaction;
-  Array *activeTransactions = initArray(START_SIZE);
-  if (!activeTransactions)
+  char **activeTrans, *currentTrans;
+  int *indexed, startIndexedSize, activeTransCount, indexOfExistantTrans, i, j;
+
+  startIndexedSize = START_SIZE;
+  indexed = calloc(startIndexedSize, sizeof(int));
+  if (!indexed)
     return NULL;
 
-  Array *indexedScaling = initArray(START_SIZE);
-  if (!indexedScaling)
+  activeTransCount = 0;
+  activeTrans = malloc(sizeof(char *));
+  if (!activeTrans)
   {
-    freeArray(activeTransactions);
+    free(indexed);
     return NULL;
   }
 
-  for (uint i = 0; i < row; i++)
+  for (i = 0; i < linesQnt; i++)
   {
-    currentTransaction = atoi(matrix[i][TRANSACTION_INDEX]);
-    indexOfElem = checkElemExistence(activeTransactions, currentTransaction);
+    currentTrans = calloc(sizeof(matrix[i][TRANSACTION_INDEX]), sizeof(char));
+    if (!currentTrans)
+    {
+      j = activeTransCount - 1;
+      while (j >= 0)
+      {
+        free(activeTrans[j]);
+        j--;
+      }
 
-    if (indexOfElem == -1 && strcmp(matrix[i][OPERATION_INDEX], COMMIT))
-      push(activeTransactions, currentTransaction);
-    else if (indexOfElem != -1 && !strcmp(matrix[i][OPERATION_INDEX], COMMIT))
-      activeTransactions = removeElem(activeTransactions, indexOfElem);
+      free(activeTrans);
+      free(indexed);
 
-    if (isEmptyArray(activeTransactions))
-      push(indexedScaling, i);
+      return NULL;
+    }
+    memcpy(currentTrans, matrix[i][TRANSACTION_INDEX], sizeof(matrix[i][TRANSACTION_INDEX]));
+
+    indexOfExistantTrans = -1;
+    for (j = 0; j < activeTransCount && indexOfExistantTrans == -1; j++)
+      if (!strcmp(activeTrans[j], currentTrans))
+        indexOfExistantTrans = j;
+
+    if (indexOfExistantTrans == -1 && strcmp(matrix[i][OPERATION_INDEX], COMMIT))
+    {
+      activeTrans[activeTransCount] = calloc(sizeof(currentTrans), sizeof(char));
+      if (!activeTrans[activeTransCount])
+      {
+        j = activeTransCount - 1;
+        while (j >= 0)
+        {
+          free(activeTrans[j]);
+          j--;
+        }
+
+        free(activeTrans);
+        free(indexed);
+
+        return NULL;
+      }
+
+      memcpy(activeTrans[activeTransCount], currentTrans, sizeof(currentTrans));
+      activeTransCount++;
+    }
+    else if (indexOfExistantTrans != -1 && !strcmp(matrix[i][OPERATION_INDEX], COMMIT))
+    {
+      free(activeTrans[indexOfExistantTrans]);
+      memcpy(activeTrans + indexOfExistantTrans, activeTrans + indexOfExistantTrans + 1, (activeTransCount - indexOfExistantTrans - 1) * sizeof(char));
+      activeTransCount--;
+    }
+
+    if (activeTransCount == 0)
+    {
+      if (*indexedQnt == startIndexedSize)
+      {
+        startIndexedSize *= 2;
+        indexed = realloc(indexed, startIndexedSize * sizeof(int));
+        if (!indexed)
+        {
+          j = activeTransCount - 1;
+          while (j >= 0)
+          {
+            free(activeTrans[j]);
+            j--;
+          }
+
+          free(activeTrans);
+          free(indexed);
+
+          return NULL;
+        }
+      }
+
+      indexed[*indexedQnt] = i;
+      (*indexedQnt)++;
+    }
+
+    free(currentTrans);
   }
 
-  free(activeTransactions);
-  return indexedScaling;
+  return indexed;
 }
 
 void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex)

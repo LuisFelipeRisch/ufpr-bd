@@ -30,7 +30,7 @@ int *initIntArrayWith(int number, uint size);
 uint *initUintArrayWith(uint number, uint size);
 int **initIntMatrixWith(int number, uint row, uint col);
 uint **initUintMatrixWith(uint number, uint row, uint col);
-Array *indexFinishedScaling(char ***matrix, uint row);
+int *delimitSchedules(char ***matrix, int linesQnt, int *indexedQnt);
 void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex);
 int getUniqAttributesSchedule(char ***matrix, char **attributes, int *attributesCount, uint startIndex, uint endIndex);
 int getActiveTransactions(char ***matrix, char **activeTrans, int *activeTransCount, uint startIndex, uint endIndex);
