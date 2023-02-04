@@ -8,30 +8,31 @@
 
 int main()
 {
-  char ***matrix;
-  int *delimitedSchedules, delimitedSchedulesSize, linesQnt;
+  char ***matrix, **activeTrans;
+  int *delimitedSchedules, delimitedSchedulesSize, linesQnt,
+      startIndex, endIndex, cycle, equivalentView, activeTransCount, i, j, success;
   uint *dependencyGraphSize, **dependencyGraph;
   dependencyGraphSize = malloc(sizeof(uint));
 
+  success = 1;
+
   matrix = readEntryFromStdin(&linesQnt);
   if (!matrix)
-    return EXIT_FAILURE;
+    success = 0;
 
   delimitedSchedules = delimitSchedules(matrix, linesQnt, &delimitedSchedulesSize);
   if (!delimitedSchedules)
-    return EXIT_FAILURE;
+    success = 0;
 
-  uint startIndex = 0, endIndex;
-  int cycle, equivalentView, activeTransCount;
-  char **activeTrans;
-
-  for (uint i = 0; i < delimitedSchedulesSize; i++)
+  startIndex = 0;
+  for (i = 0; i < delimitedSchedulesSize && success; i++)
   {
     endIndex = delimitedSchedules[i];
+
     activeTransCount = 0;
     activeTrans = malloc(sizeof(char *));
     if (!activeTrans)
-      return -1;
+      success = 0;
 
     getActiveTransactions(matrix, activeTrans, &activeTransCount, startIndex, endIndex);
 
@@ -54,7 +55,31 @@ int main()
 
     startIndex = endIndex + 1;
     free(activeTrans);
+    activeTrans = NULL;
   }
 
-  return 0;
+  if (matrix)
+  {
+    for (i = 0; i < linesQnt; i++)
+      for (j = 0; i < COL; i++)
+        free(matrix[i][j]);
+
+    for (i = 0; i < linesQnt; i++)
+      free(matrix[i]);
+
+    free(matrix);
+  }
+
+  if (activeTrans)
+  {
+    for (i = 0; i < activeTransCount; i++)
+      free(activeTrans[i]);
+
+    free(activeTrans);
+  }
+
+  if (delimitedSchedules)
+    free(delimitedSchedules);
+
+  return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
