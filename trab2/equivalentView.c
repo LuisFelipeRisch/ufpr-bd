@@ -1,9 +1,75 @@
 #include "equivalentView.h"
 
+int combineAndCheckCycle(uint **polygraph, int possibilityOne[][2], int possibilityTwo[][2], int *possibilities, int *data, int polygraphSize, int start, int end, int index, int k)
+{
+  if (index == k)
+  {
+    Queue *queue;
+    int sourceIndex, destinyIndex, cycle;
+    for (int j = 0; j < k; j++)
+    {
+      if (data[j] == 1)
+      {
+        sourceIndex = possibilityOne[j][0];
+        destinyIndex = possibilityOne[j][1];
+      }
+      else
+      {
+        sourceIndex = possibilityTwo[j][0];
+        destinyIndex = possibilityTwo[j][1];
+      }
+      polygraph[sourceIndex][destinyIndex]++;
+    }
+
+    queue = initQueue();
+    cycle = khan(polygraph, polygraphSize, queue);
+    cleanQueue(queue);
+
+    if (cycle)
+      return 1;
+
+    for (int j = 0; j < k; j++)
+    {
+      if (data[j] == 1)
+      {
+        sourceIndex = possibilityOne[j][0];
+        destinyIndex = possibilityOne[j][1];
+      }
+      else
+      {
+        sourceIndex = possibilityTwo[j][0];
+        destinyIndex = possibilityTwo[j][1];
+      }
+      polygraph[sourceIndex][destinyIndex]--;
+    }
+
+    return 0;
+  }
+
+  for (int i = start; i <= end; i++)
+  {
+    data[index] = possibilities[i];
+    if (combineAndCheckCycle(polygraph, possibilityOne, possibilityTwo, possibilities, data, polygraphSize, start, end, index + 1, k))
+      return 1;
+  }
+
+  return 0;
+}
+
+int checkCycle(uint **polygraph, int possibilityOne[][2], int possibilityTwo[][2], int polygraphSize, int possibilityCount)
+{
+  int possibilities[] = {1, 2};
+  int k = possibilityCount;
+  int n = 2;
+  int data[k];
+  return combineAndCheckCycle(polygraph, possibilityOne, possibilityTwo, possibilities, data, polygraphSize, 0, n - 1, 0, k);
+}
+
 int checkEquivalencyView(char ***matrix, char **activeTrans, int activeTransCount, uint startIndex, uint endIndex)
 {
   Queue *queue;
-  int sourceIndex, destinyIndex, auxSourceIndex, auxDestinyIndex, cycle, equivalent, i, j, k, newMatrixSize, found;
+  int sourceIndex, destinyIndex, auxSourceIndex, auxDestinyIndex, auxSourceIndexTwo, auxDestinyIndexTwo, cycle, equivalent, i, j, k,
+      newMatrixSize, found, possibilityOne[100][2], possibilityTwo[100][2], countPossibility;
   uint **polygraph;
   char ***newMatrix;
 
@@ -18,8 +84,8 @@ int checkEquivalencyView(char ***matrix, char **activeTrans, int activeTransCoun
   if (!newMatrix)
     return -1;
 
-  equivalent = 1;
-  for (i = 0; i < newMatrixSize && equivalent; i++)
+  countPossibility = 0;
+  for (i = 0; i < newMatrixSize; i++)
   {
     if (strcmp(newMatrix[i][OPERATION_INDEX], READ))
       continue;
@@ -43,7 +109,7 @@ int checkEquivalencyView(char ***matrix, char **activeTrans, int activeTransCoun
     polygraph[sourceIndex][destinyIndex]++;
 
     k = i + 1;
-    while (k < newMatrixSize && equivalent)
+    while (k < newMatrixSize)
     {
       if (!strcmp(newMatrix[k][OPERATION_INDEX], WRITE) &&
           !strcmp(newMatrix[i][ATTRIBUTE_INDEX], newMatrix[j + 1][ATTRIBUTE_INDEX]) &&
@@ -55,48 +121,44 @@ int checkEquivalencyView(char ***matrix, char **activeTrans, int activeTransCoun
         auxSourceIndex = getIndexOfValue(newMatrix[k][TRANSACTION_INDEX], activeTrans, activeTransCount) + 1;
         auxDestinyIndex = !strcmp(newMatrix[j + 1][TRANSACTION_INDEX], INITIAL_TRANS_IDENTIFIER) ? -1 : getIndexOfValue(newMatrix[j + 1][TRANSACTION_INDEX], activeTrans, activeTransCount) + 1;
 
-        if (auxDestinyIndex != -1)
+        auxSourceIndexTwo = !strcmp(newMatrix[i][TRANSACTION_INDEX], FINAL_TRANS_IDENTIFIER) ? -1 : getIndexOfValue(newMatrix[i][TRANSACTION_INDEX], activeTrans, activeTransCount) + 1;
+        auxDestinyIndexTwo = getIndexOfValue(newMatrix[k][TRANSACTION_INDEX], activeTrans, activeTransCount) + 1;
+
+        if (auxDestinyIndex == -1 && auxSourceIndexTwo == -1)
         {
-          polygraph[auxSourceIndex][auxDestinyIndex]++;
-
-          queue = initQueue();
-          cycle = khan(polygraph, activeTransCount + 2, queue);
-          cleanQueue(queue);
-
-          if (!cycle)
-          {
-            k++;
-            continue;
-          }
-
-          polygraph[auxSourceIndex][auxDestinyIndex]--;
+          k++;
+          continue;
         }
 
-        auxSourceIndex = !strcmp(newMatrix[i][TRANSACTION_INDEX], FINAL_TRANS_IDENTIFIER) ? -1 : getIndexOfValue(newMatrix[i][TRANSACTION_INDEX], activeTrans, activeTransCount) + 1;
-        auxDestinyIndex = getIndexOfValue(newMatrix[k][TRANSACTION_INDEX], activeTrans, activeTransCount) + 1;
-
-        if (auxSourceIndex != -1)
+        if (auxDestinyIndex == -1)
         {
-          polygraph[auxSourceIndex][auxDestinyIndex]++;
+          k++;
 
-          queue = initQueue();
-          cycle = khan(polygraph, activeTransCount + 2, queue);
-          cleanQueue(queue);
-
-          if (!cycle)
-          {
-            k++;
-            continue;
-          }
-
-          polygraph[auxSourceIndex][auxDestinyIndex]--;
+          polygraph[auxSourceIndexTwo][auxDestinyIndexTwo]++;
+          continue;
         }
 
-        equivalent = 0;
+        if (auxSourceIndexTwo == -1)
+        {
+          k++;
+
+          polygraph[auxSourceIndex][auxDestinyIndex]++;
+          continue;
+        }
+
+        possibilityOne[countPossibility][0] = auxSourceIndex;
+        possibilityOne[countPossibility][1] = auxDestinyIndex;
+
+        possibilityTwo[countPossibility][0] = auxSourceIndexTwo;
+        possibilityTwo[countPossibility][1] = auxDestinyIndexTwo;
+
+        countPossibility++;
       }
+
       k++;
     }
   }
+  equivalent = !checkCycle(polygraph, possibilityOne, possibilityTwo, activeTransCount + 2, countPossibility);
 
   return equivalent;
 }
