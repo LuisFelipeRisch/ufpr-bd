@@ -1,10 +1,10 @@
 #include "conflictSerializable.h"
 
-int checkConflictSerializable(char ***matrix, char **activeTrans, int activeTransCount, int startIndex, int endIndex)
+int checkConflictSerializable(char ***matrix, Array *activeTrans, int startIndex, int endIndex)
 {
   int **dependencyGraph, sourceIndex, destinyIndex, exitsCycle, i, j;
 
-  dependencyGraph = initIntMatrixWith(0, activeTransCount, activeTransCount);
+  dependencyGraph = initIntMatrixWith(0, activeTrans->used, activeTrans->used);
   if (!dependencyGraph)
     return -1;
 
@@ -21,8 +21,8 @@ int checkConflictSerializable(char ***matrix, char **activeTrans, int activeTran
             strcmp(matrix[j][ATTRIBUTE_INDEX], matrix[i][ATTRIBUTE_INDEX]))
           continue;
 
-        sourceIndex = getIndexOfValue(matrix[i][TRANSACTION_INDEX], activeTrans, activeTransCount);
-        destinyIndex = getIndexOfValue(matrix[j][TRANSACTION_INDEX], activeTrans, activeTransCount);
+        sourceIndex = checkElemExistence(activeTrans, atoi(matrix[i][TRANSACTION_INDEX]));
+        destinyIndex = checkElemExistence(activeTrans, atoi(matrix[j][TRANSACTION_INDEX]));
 
         dependencyGraph[sourceIndex][destinyIndex]++;
       }
@@ -35,18 +35,18 @@ int checkConflictSerializable(char ***matrix, char **activeTrans, int activeTran
             strcmp(matrix[j][ATTRIBUTE_INDEX], matrix[i][ATTRIBUTE_INDEX]))
           continue;
 
-        sourceIndex = getIndexOfValue(matrix[i][TRANSACTION_INDEX], activeTrans, activeTransCount);
-        destinyIndex = getIndexOfValue(matrix[j][TRANSACTION_INDEX], activeTrans, activeTransCount);
+        sourceIndex = checkElemExistence(activeTrans, atoi(matrix[i][TRANSACTION_INDEX]));
+        destinyIndex = checkElemExistence(activeTrans, atoi(matrix[j][TRANSACTION_INDEX]));
 
         dependencyGraph[sourceIndex][destinyIndex]++;
       }
   }
 
-  exitsCycle = cycle(dependencyGraph, activeTransCount);
+  exitsCycle = cycle(dependencyGraph, activeTrans->used);
 
   if (dependencyGraph)
   {
-    for (i = 0; i < activeTransCount; i++)
+    for (i = 0; i < activeTrans->used; i++)
       free(dependencyGraph[i]);
     free(dependencyGraph);
   }

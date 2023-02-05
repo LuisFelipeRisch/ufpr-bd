@@ -8,9 +8,9 @@
 
 int main()
 {
-  char ***matrix, **activeTrans;
-  int *delimitedSchedules, delimitedSchedulesSize, linesQnt,
-      startIndex, endIndex, conflictSerializable, equivalentView, activeTransCount, i, j, success;
+  Array *delimitedSchedules, *activeTrans;
+  char ***matrix;
+  int linesQnt, startIndex, endIndex, conflictSerializable, equivalentView, i, j, success;
 
   success = 1;
 
@@ -18,73 +18,67 @@ int main()
   if (!matrix)
     success = 0;
 
-  delimitedSchedules = delimitSchedules(matrix, linesQnt, &delimitedSchedulesSize);
+  delimitedSchedules = delimitSchedules(matrix, linesQnt);
   if (!delimitedSchedules)
     success = 0;
 
   startIndex = 0;
-  for (i = 0; i < delimitedSchedulesSize && success; i++)
+  for (i = 0; i < delimitedSchedules->used && success; i++)
   {
-    endIndex = delimitedSchedules[i];
+    endIndex = delimitedSchedules->array[i];
 
-    activeTrans = getActiveTransactions(matrix, &activeTransCount, startIndex, endIndex);
+    activeTrans = getActiveTransactions(matrix, startIndex, endIndex);
     if (!activeTrans)
     {
       success = 0;
       continue;
     }
 
-    conflictSerializable = checkConflictSerializable(matrix, activeTrans, activeTransCount, startIndex, endIndex);
+    conflictSerializable = checkConflictSerializable(matrix, activeTrans, startIndex, endIndex);
     if (conflictSerializable == -1)
     {
       success = 0;
       continue;
     }
 
-    equivalentView = checkEquivalencyView(matrix, activeTrans, activeTransCount, startIndex, endIndex);
+    equivalentView = checkEquivalencyView(matrix, activeTrans, startIndex, endIndex);
 
     printf("%d ", i + 1);
-    for (uint j = 0; j < activeTransCount; j++)
+    for (j = 0; j < activeTrans->used; j++)
     {
-      printf("%s", activeTrans[j]);
-      if (j != activeTransCount - 1)
+      printf("%d", activeTrans->array[j]);
+      if (j != activeTrans->used - 1)
         printf(",");
     }
     printf(" %s", conflictSerializable ? "SS" : "NS");
     printf(" %s\n", equivalentView ? "SV" : "NV");
 
-    startIndex = endIndex + 1;
-
-    if (activeTrans)
-    {
-      for (j = 0; j < activeTransCount; j++)
-        free(activeTrans[j]);
-
-      free(activeTrans);
-    }
+    freeArray(activeTrans);
     activeTrans = NULL;
+
+    startIndex = endIndex + 1;
   }
 
   if (matrix)
   {
     for (i = 0; i < linesQnt; i++)
-      for (j = 0; i < COL; i++)
-        free(matrix[i][j]);
+    {
+      for (j = 0; j < COL; j++)
+        if (matrix[i][j])
+          free(matrix[i][j]);
 
-    for (i = 0; i < linesQnt; i++)
-      free(matrix[i]);
-  }
+      if (matrix[i])
+        free(matrix[i]);
+    }
 
-  if (activeTrans)
-  {
-    for (i = 0; i < activeTransCount; i++)
-      free(activeTrans[i]);
-
-    free(activeTrans);
+    free(matrix);
   }
 
   if (delimitedSchedules)
-    free(delimitedSchedules);
+    freeArray(delimitedSchedules);
+
+  if (activeTrans)
+    freeArray(activeTrans);
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

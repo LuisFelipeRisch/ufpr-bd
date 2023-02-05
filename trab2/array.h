@@ -5,17 +5,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-  uint *array;
+typedef struct
+{
+  int *array;
   size_t used;
   size_t size;
 } Array;
 
-Array *initArray(uint initialSize);
-int push(Array *array, uint element);
-Array *removeElem(Array *array, uint indexToRemove);
+Array *initArray(int initialSize);
+int push(Array *array, int element);
+Array *removeElem(Array *array, int indexToRemove);
 void freeArray(Array *array);
-int checkElemExistence(Array *array, uint element);
+int checkElemExistence(Array *array, int element);
 int isEmptyArray(Array *array);
 
 #endif

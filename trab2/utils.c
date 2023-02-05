@@ -120,106 +120,53 @@ uint **initUintMatrixWith(uint number, uint row, uint col)
   return matrix;
 }
 
-int *delimitSchedules(char ***matrix, int linesQnt, int *indexedQnt)
+Array *delimitSchedules(char ***matrix, int linesQnt)
 {
-  char **activeTrans, *currentTrans;
-  int *indexed, startIndexedSize, activeTransCount, indexOfExistantTrans, i, j;
+  Array *activeTrans, *delimitedSchedules;
+  int currentTrans, indexOfExistantTrans, i, success;
 
-  startIndexedSize = START_SIZE;
-  indexed = calloc(startIndexedSize, sizeof(int));
-  if (!indexed)
-    return NULL;
+  success = 1;
 
-  activeTransCount = 0;
-  activeTrans = malloc(sizeof(char *));
+  activeTrans = initArray(START_SIZE);
   if (!activeTrans)
+    success = 0;
+
+  delimitedSchedules = initArray(START_SIZE);
+  if (!delimitedSchedules)
+    success = 0;
+
+  for (i = 0; i < linesQnt && success; i++)
   {
-    free(indexed);
-    return NULL;
-  }
-
-  for (i = 0; i < linesQnt; i++)
-  {
-    currentTrans = calloc(sizeof(matrix[i][TRANSACTION_INDEX]), sizeof(char));
-    if (!currentTrans)
-    {
-      j = activeTransCount - 1;
-      while (j >= 0)
-      {
-        free(activeTrans[j]);
-        j--;
-      }
-
-      free(activeTrans);
-      free(indexed);
-
-      return NULL;
-    }
-    memcpy(currentTrans, matrix[i][TRANSACTION_INDEX], sizeof(matrix[i][TRANSACTION_INDEX]));
-
-    indexOfExistantTrans = -1;
-    for (j = 0; j < activeTransCount && indexOfExistantTrans == -1; j++)
-      if (!strcmp(activeTrans[j], currentTrans))
-        indexOfExistantTrans = j;
+    currentTrans = atoi(matrix[i][TRANSACTION_INDEX]);
+    indexOfExistantTrans = checkElemExistence(activeTrans, currentTrans);
 
     if (indexOfExistantTrans == -1 && strcmp(matrix[i][OPERATION_INDEX], COMMIT))
     {
-      activeTrans[activeTransCount] = calloc(sizeof(currentTrans), sizeof(char));
-      if (!activeTrans[activeTransCount])
+      if (push(activeTrans, currentTrans) == -1)
       {
-        j = activeTransCount - 1;
-        while (j >= 0)
-        {
-          free(activeTrans[j]);
-          j--;
-        }
-
-        free(activeTrans);
-        free(indexed);
-
-        return NULL;
+        success = 0;
+        continue;
       }
-
-      memcpy(activeTrans[activeTransCount], currentTrans, sizeof(currentTrans));
-      activeTransCount++;
     }
     else if (indexOfExistantTrans != -1 && !strcmp(matrix[i][OPERATION_INDEX], COMMIT))
-    {
-      free(activeTrans[indexOfExistantTrans]);
-      memcpy(activeTrans + indexOfExistantTrans, activeTrans + indexOfExistantTrans + 1, (activeTransCount - indexOfExistantTrans - 1) * sizeof(char));
-      activeTransCount--;
-    }
+      activeTrans = removeElem(activeTrans, indexOfExistantTrans);
 
-    if (activeTransCount == 0)
-    {
-      if (*indexedQnt == startIndexedSize)
+    if (isEmptyArray(activeTrans))
+      if (push(delimitedSchedules, i) == -1)
       {
-        startIndexedSize *= 2;
-        indexed = realloc(indexed, startIndexedSize * sizeof(int));
-        if (!indexed)
-        {
-          j = activeTransCount - 1;
-          while (j >= 0)
-          {
-            free(activeTrans[j]);
-            j--;
-          }
-
-          free(activeTrans);
-          free(indexed);
-
-          return NULL;
-        }
+        success = 0;
+        continue;
       }
-
-      indexed[*indexedQnt] = i;
-      (*indexedQnt)++;
-    }
-
-    free(currentTrans);
   }
 
-  return indexed;
+  if (activeTrans)
+    freeArray(activeTrans);
+
+  if (!success)
+    if (delimitedSchedules)
+      freeArray(delimitedSchedules);
+
+  return success ? delimitedSchedules : NULL;
 }
 
 void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex)
@@ -231,89 +178,83 @@ void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, u
       push(timestamps, atoi(matrix[i][TIME_INDEX]));
 }
 
-char **getUniqAttributesSchedule(char ***matrix, int *attributesCount, int startIndex, int endIndex)
+char **getUniqAttributesSchedule(char ***matrix, int *scheduleAttrsCount, int startIndex, int endIndex)
 {
   char **scheduleAttrs;
-  int i, j, attrExists;
+  int i, j, attrExists, success, maxScheduleAttrsCount;
 
-  *attributesCount = 0;
-  scheduleAttrs = malloc(sizeof(char *));
+  success = 1;
+
+  maxScheduleAttrsCount = endIndex - startIndex + 1;
+  *scheduleAttrsCount = 0;
+  scheduleAttrs = (char **)calloc(maxScheduleAttrsCount, sizeof(char *));
   if (!scheduleAttrs)
-    return NULL;
+    success = 0;
 
-  for (i = startIndex; i <= endIndex; i++)
+  for (i = startIndex; i <= endIndex && success; i++)
   {
     if (!strcmp(matrix[i][OPERATION_INDEX], COMMIT))
       continue;
 
     attrExists = 0;
-    for (j = 0; j < *attributesCount && !attrExists; j++)
+    for (j = 0; j < *scheduleAttrsCount && !attrExists; j++)
       if (!strcmp(scheduleAttrs[j], matrix[i][ATTRIBUTE_INDEX]))
         attrExists = 1;
 
     if (!attrExists)
     {
-      scheduleAttrs[*attributesCount] = calloc(sizeof(matrix[i][ATTRIBUTE_INDEX]), sizeof(char));
-      if (!scheduleAttrs[*attributesCount])
+      scheduleAttrs[*scheduleAttrsCount] = calloc(sizeof(matrix[i][ATTRIBUTE_INDEX]), sizeof(char));
+      if (!scheduleAttrs[*scheduleAttrsCount])
       {
-        j = *attributesCount - 1;
-        while (j >= 0)
-        {
-          free(scheduleAttrs[j]);
-          j--;
-        }
-        free(scheduleAttrs);
-
-        return NULL;
+        success = 0;
+        continue;
       }
 
-      memcpy(scheduleAttrs[*attributesCount], matrix[i][ATTRIBUTE_INDEX], sizeof(matrix[i][ATTRIBUTE_INDEX]));
-      (*attributesCount)++;
+      memcpy(scheduleAttrs[*scheduleAttrsCount], matrix[i][ATTRIBUTE_INDEX], sizeof(matrix[i][ATTRIBUTE_INDEX]));
+      (*scheduleAttrsCount)++;
     }
   }
 
-  return scheduleAttrs;
+  if (!success)
+    if (scheduleAttrs)
+    {
+      for (i = 0; i < maxScheduleAttrsCount; i++)
+        if (scheduleAttrs[i])
+          free(scheduleAttrs[i]);
+
+      free(scheduleAttrs);
+    }
+
+  return success ? scheduleAttrs : NULL;
 }
 
-char **getActiveTransactions(char ***matrix, int *activeTransCount, int startIndex, int endIndex)
+Array *getActiveTransactions(char ***matrix, int startIndex, int endIndex)
 {
-  int i, j, transExits;
-  char **activeTrans;
+  Array *activeTrans;
+  int currentTrans, i, j, indexOfExistantElem, success;
 
-  *activeTransCount = 0;
-  activeTrans = malloc(sizeof(char *));
+  success = 1;
+
+  activeTrans = initArray(START_SIZE);
   if (!activeTrans)
-    return NULL;
+    success = 0;
 
-  for (i = startIndex; i <= endIndex; i++)
+  for (i = startIndex; i <= endIndex && success; i++)
   {
-    transExits = 0;
-    for (j = 0; j < *activeTransCount && !transExits; j++)
-      if (!strcmp(activeTrans[j], matrix[i][TRANSACTION_INDEX]))
-        transExits = 1;
+    currentTrans = atoi(matrix[i][TRANSACTION_INDEX]);
 
-    if (!transExits)
-    {
-      activeTrans[*activeTransCount] = calloc(sizeof(matrix[i][TRANSACTION_INDEX]), sizeof(char));
-      if (!activeTrans[*activeTransCount])
-      {
-        j = *activeTransCount - 1;
-        while (j >= 0)
-        {
-          free(activeTrans[j]);
-          j--;
-        }
-        free(activeTrans);
+    indexOfExistantElem = checkElemExistence(activeTrans, currentTrans);
 
-        return NULL;
-      }
-
-      memcpy(activeTrans[*activeTransCount], matrix[i][TRANSACTION_INDEX], sizeof(matrix[i][TRANSACTION_INDEX]));
-      (*activeTransCount)++;
-    }
+    if (indexOfExistantElem == -1)
+      if (push(activeTrans, currentTrans) == -1)
+        success = 0;
   }
 
-  return activeTrans;
+  if (!success)
+    if (activeTrans)
+      freeArray(activeTrans);
+
+  return success ? activeTrans : NULL;
 }
 
 int getIndexOfValue(char *value, char **matrix, int matrixSize)
@@ -329,53 +270,55 @@ int getIndexOfValue(char *value, char **matrix, int matrixSize)
   return found;
 }
 
-char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, int startIndex, int endIndex)
+char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, int activeTransCount, int startIndex, int endIndex)
 {
   char **scheduleAttrs, ***newMatrix, line[256], *splittedLine;
-  int splitsCount, maxBuffer, i, j, scheduleAttrsCount, success;
+  int splitsCount, maxBuffer, i, j, scheduleAttrsCount, counter, success;
 
   success = 1;
-
-  *newMatrixSize = 0;
-  newMatrix = malloc(sizeof(char **));
-  if (!newMatrix)
-    success = 0;
 
   scheduleAttrs = getUniqAttributesSchedule(matrix, &scheduleAttrsCount, startIndex, endIndex);
   if (!scheduleAttrs)
     success = 0;
 
+  *newMatrixSize = endIndex - startIndex + 1 + scheduleAttrsCount * 2 - activeTransCount;
+  newMatrix = (char ***)calloc(*newMatrixSize, sizeof(char **));
+  if (!newMatrix)
+    success = 0;
+
+  if (success)
+    for (i = 0; i < *newMatrixSize && success; i++)
+    {
+      newMatrix[i] = (char **)calloc(COL, sizeof(char *));
+      if (!newMatrix[i])
+        success = 0;
+    }
+
+  counter = 0;
   i = 0;
   while (i < scheduleAttrsCount && success)
   {
-    maxBuffer = sizeof("0") + sizeof(INITIAL_TRANS_IDENTIFIER) + sizeof(WRITE) + sizeof(scheduleAttrs[i]) + 1;
+    maxBuffer = sizeof("0") + sizeof(INITIAL_TRANS_IDENTIFIER) + sizeof(WRITE) + sizeof(scheduleAttrs[i]);
     snprintf(line, maxBuffer, "%s %s %s %s", "0", INITIAL_TRANS_IDENTIFIER, WRITE, scheduleAttrs[i]);
-
-    newMatrix[*newMatrixSize] = calloc(COL, sizeof(char *));
-    if (!newMatrix[*newMatrixSize])
-    {
-      success = 0;
-      continue;
-    }
 
     splittedLine = strtok(line, " ");
     splitsCount = 0;
     while (splittedLine != NULL && splitsCount >= 0 && splitsCount <= 3 && success)
     {
-      newMatrix[*newMatrixSize][splitsCount] = calloc(sizeof(splittedLine), sizeof(char));
-      if (!newMatrix[*newMatrixSize][splitsCount])
+      newMatrix[counter][splitsCount] = (char *)calloc(sizeof(splittedLine), sizeof(char));
+      if (!newMatrix[counter][splitsCount])
       {
         success = 0;
         continue;
       }
 
-      memcpy(newMatrix[*newMatrixSize][splitsCount], splittedLine, sizeof(splittedLine));
+      memcpy(newMatrix[counter][splitsCount], splittedLine, sizeof(splittedLine));
       splittedLine = strtok(NULL, " ");
       splitsCount++;
     }
 
     free(splittedLine);
-    (*newMatrixSize)++;
+    counter++;
     i++;
   }
 
@@ -384,66 +327,56 @@ char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, 
     if (!strcmp(matrix[i][OPERATION_INDEX], COMMIT))
       continue;
 
-    newMatrix[*newMatrixSize] = calloc(COL, sizeof(char *));
-    if (!newMatrix[*newMatrixSize])
-    {
-      success = 0;
-      continue;
-    }
-
     for (j = 0; j < COL && success; j++)
     {
-      newMatrix[*newMatrixSize][j] = calloc(sizeof(matrix[i][j]), sizeof(char));
-      if (!newMatrix)
+      newMatrix[counter][j] = (char *)calloc(sizeof(matrix[i][j]), sizeof(char));
+      if (!newMatrix[counter][j])
       {
         success = 0;
         continue;
       }
 
-      memcpy(newMatrix[*newMatrixSize][j], matrix[i][j], sizeof(matrix[i][j]));
+      memcpy(newMatrix[counter][j], matrix[i][j], sizeof(matrix[i][j]));
     }
 
-    (*newMatrixSize)++;
+    (counter)++;
   }
 
   i = 0;
   while (i < scheduleAttrsCount && success)
   {
-    maxBuffer = sizeof("0") + sizeof(FINAL_TRANS_IDENTIFIER) + sizeof(READ) + sizeof(scheduleAttrs[i]) + 1;
+    maxBuffer = sizeof("0") + sizeof(FINAL_TRANS_IDENTIFIER) + sizeof(READ) + sizeof(scheduleAttrs[i]);
     snprintf(line, maxBuffer, "%s %s %s %s", "0", FINAL_TRANS_IDENTIFIER, READ, scheduleAttrs[i]);
-
-    newMatrix[*newMatrixSize] = calloc(COL, sizeof(char *));
-    if (!newMatrix[*newMatrixSize])
-    {
-      success = 0;
-      continue;
-    }
 
     splittedLine = strtok(line, " ");
     splitsCount = 0;
     while (splittedLine != NULL && splitsCount >= 0 && splitsCount <= 3 && success)
     {
-      newMatrix[*newMatrixSize][splitsCount] = calloc(sizeof(splittedLine), sizeof(char));
-      if (!newMatrix[*newMatrixSize][splitsCount])
+      newMatrix[counter][splitsCount] = (char *)calloc(sizeof(splittedLine), sizeof(char));
+      if (!newMatrix[counter][splitsCount])
       {
         success = 0;
         continue;
       }
 
-      memcpy(newMatrix[*newMatrixSize][splitsCount], splittedLine, sizeof(splittedLine));
+      memcpy(newMatrix[counter][splitsCount], splittedLine, sizeof(splittedLine));
       splittedLine = strtok(NULL, " ");
       splitsCount++;
     }
 
     free(splittedLine);
-    (*newMatrixSize)++;
+    (counter)++;
     i++;
   }
 
   if (scheduleAttrs)
   {
-    for (i = 0; i < scheduleAttrsCount; i++)
-      free(scheduleAttrs[i]);
+    int maxScheduleAttrsCount = endIndex - startIndex + 1;
+
+    for (i = 0; i < maxScheduleAttrsCount; i++)
+      if (scheduleAttrs[i])
+        free(scheduleAttrs[i]);
+
     free(scheduleAttrs);
   }
 
@@ -451,67 +384,94 @@ char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, 
     if (newMatrix)
     {
       for (i = 0; i < *newMatrixSize; i++)
+      {
         for (j = 0; j < COL; j++)
-          free(newMatrix[i][j]);
+          if (newMatrix[i][j])
+            free(newMatrix[i][j]);
 
-      for (i = 0; i < *newMatrixSize; i++)
-        free(newMatrix[i]);
+        if (newMatrix[i])
+          free(newMatrix[i]);
+      }
+
+      free(newMatrix);
     }
 
   return success ? newMatrix : NULL;
 }
 
+int countLinesOfStdinFile()
+{
+  int counter;
+  char singleChar;
+
+  counter = 0;
+
+  while (fread(&singleChar, 1, 1, stdin))
+    if (singleChar == '\n')
+      counter++;
+
+  return counter;
+}
+
 char ***readEntryFromStdin(int *linesQnt)
 {
-  int i, j, splitsCount;
+  int i, j, splitsCount, counter, success;
   char ***matrix, *splittedLine, line[256];
 
-  *linesQnt = 0;
-  matrix = malloc(sizeof(char **));
+  success = 1;
+
+  *linesQnt = countLinesOfStdinFile() + 1;
+  rewind(stdin);
+  matrix = (char ***)calloc(*linesQnt, sizeof(char **));
   if (!matrix)
-    return NULL;
+    success = 0;
 
-  while (fgets(line, sizeof(line), stdin))
+  for (i = 0; i < *linesQnt && success; i++)
   {
-    matrix[*linesQnt] = calloc(COL, sizeof(char *));
-    if (!matrix)
-    {
-      for (i = *linesQnt - 1; i >= 0; i--)
-        free(matrix[i]);
-      free(matrix);
+    matrix[i] = (char **)calloc(COL, sizeof(char *));
+    if (!matrix[i])
+      success = 0;
+  }
 
-      return NULL;
-    }
-
+  counter = 0;
+  while (fgets(line, sizeof(line), stdin) && success)
+  {
     line[strcspn(line, "\n")] = 0;
     splittedLine = strtok(line, " ");
     splitsCount = 0;
 
-    while (splittedLine != NULL && splitsCount >= 0 && splitsCount <= 3)
+    while (splittedLine != NULL && splitsCount >= 0 && splitsCount <= 3 && success)
     {
-      matrix[*linesQnt][splitsCount] = calloc(sizeof(splittedLine), sizeof(char));
-      if (!matrix[*linesQnt][splitsCount])
+      matrix[counter][splitsCount] = (char *)calloc(sizeof(splittedLine), sizeof(char));
+      if (!matrix[counter][splitsCount])
       {
-        for (i = *linesQnt; i >= 0; i--)
-          for (j = splitsCount - 1; j >= 0; j--)
-            free(matrix[i][j]);
-
-        for (i = *linesQnt; i >= 0; i--)
-          free(matrix[i]);
-
-        free(matrix);
-
-        return NULL;
+        success = 0;
+        continue;
       }
 
-      memcpy(matrix[*linesQnt][splitsCount], splittedLine, sizeof(splittedLine));
-
+      memcpy(matrix[counter][splitsCount], splittedLine, sizeof(splittedLine));
       splittedLine = strtok(NULL, " ");
       splitsCount++;
     }
 
-    (*linesQnt)++;
+    counter++;
   }
 
-  return matrix;
+  if (!success)
+    if (matrix)
+    {
+      for (i = 0; i < *linesQnt; i++)
+      {
+        for (j = 0; j < COL; j++)
+          if (matrix[i][j])
+            free(matrix[i][j]);
+
+        if (matrix[i])
+          free(matrix[i]);
+      }
+
+      free(matrix);
+    }
+
+  return success ? matrix : NULL;
 }

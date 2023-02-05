@@ -8,6 +8,6 @@
 #include "queue.h"
 #include "khan.h"
 
-int checkConflictSerializable(char ***matrix, char **activeTrans, int activeTransCount, int startIndex, int endIndex);
+int checkConflictSerializable(char ***matrix, Array *activeTrans, int startIndex, int endIndex);
 
 #endif
