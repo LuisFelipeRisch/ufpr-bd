@@ -1,51 +1,55 @@
 #include "conflictSerializable.h"
 
-uint findHigherTransactionNumber(char ***matrix, uint startIndex, uint endIndex){
-  uint higher = atoi(matrix[startIndex][TRANSACTION_INDEX]);
+int checkConflictSerializable(char ***matrix, char **activeTrans, int activeTransCount, int startIndex, int endIndex)
+{
+  int **dependencyGraph, sourceIndex, destinyIndex, exitsCycle, i, j;
 
-  for (uint i = startIndex + 1; i <= endIndex; i++)
-    if(atoi(matrix[i][TRANSACTION_INDEX]) > higher)
-      higher = atoi(matrix[i][TRANSACTION_INDEX]);
+  dependencyGraph = initIntMatrixWith(0, activeTransCount, activeTransCount);
+  if (!dependencyGraph)
+    return -1;
 
-  return higher;
-}
-
-uint **buildDependencyGraph(char ***matrix, uint startIndex, uint endIndex, uint *dependencyGraphSize){
-  *dependencyGraphSize = findHigherTransactionNumber(matrix, startIndex, endIndex);
-  uint **dependencyGraph = initUintMatrixWith(0, *dependencyGraphSize, *dependencyGraphSize);
-  if(!dependencyGraph)
-    return NULL;
-
-  for (uint i = startIndex; i <= endIndex - 1; i++)
+  for (i = startIndex; i <= endIndex - 1; i++)
   {
-    if(strcmp(matrix[i][OPERATION_INDEX], READ) && strcmp(matrix[i][OPERATION_INDEX], WRITE))
+    if (strcmp(matrix[i][OPERATION_INDEX], READ) && strcmp(matrix[i][OPERATION_INDEX], WRITE))
       continue;
 
-    if(!strcmp(matrix[i][OPERATION_INDEX], READ))
-      for (uint j = i + 1; j <= endIndex; j++)
+    if (!strcmp(matrix[i][OPERATION_INDEX], READ))
+      for (j = i + 1; j <= endIndex; j++)
       {
-        if(!strcmp(matrix[j][TRANSACTION_INDEX], matrix[i][TRANSACTION_INDEX]) || strcmp(matrix[j][OPERATION_INDEX], WRITE) || strcmp(matrix[j][ATTRIBUTE_INDEX], matrix[i][ATTRIBUTE_INDEX]))
+        if (!strcmp(matrix[j][TRANSACTION_INDEX], matrix[i][TRANSACTION_INDEX]) ||
+            strcmp(matrix[j][OPERATION_INDEX], WRITE) ||
+            strcmp(matrix[j][ATTRIBUTE_INDEX], matrix[i][ATTRIBUTE_INDEX]))
           continue;
 
-        int transactionI = atoi(matrix[i][TRANSACTION_INDEX]) - 1;
-        int transactionJ = atoi(matrix[j][TRANSACTION_INDEX]) - 1;
+        sourceIndex = getIndexOfValue(matrix[i][TRANSACTION_INDEX], activeTrans, activeTransCount);
+        destinyIndex = getIndexOfValue(matrix[j][TRANSACTION_INDEX], activeTrans, activeTransCount);
 
-        dependencyGraph[transactionI][transactionJ]++;
+        dependencyGraph[sourceIndex][destinyIndex]++;
       }
 
-    if(!strcmp(matrix[i][OPERATION_INDEX], WRITE))
-      for (uint j = i + 1; j <= endIndex; j++)
+    if (!strcmp(matrix[i][OPERATION_INDEX], WRITE))
+      for (j = i + 1; j <= endIndex; j++)
       {
-        if(!strcmp(matrix[j][TRANSACTION_INDEX], matrix[i][TRANSACTION_INDEX]) || (strcmp(matrix[j][OPERATION_INDEX], WRITE) && strcmp(matrix[j][OPERATION_INDEX], READ)) || strcmp(matrix[j][ATTRIBUTE_INDEX], matrix[i][ATTRIBUTE_INDEX]))
+        if (!strcmp(matrix[j][TRANSACTION_INDEX], matrix[i][TRANSACTION_INDEX]) ||
+            (strcmp(matrix[j][OPERATION_INDEX], WRITE) && strcmp(matrix[j][OPERATION_INDEX], READ)) ||
+            strcmp(matrix[j][ATTRIBUTE_INDEX], matrix[i][ATTRIBUTE_INDEX]))
           continue;
 
-        int transactionI = atoi(matrix[i][TRANSACTION_INDEX]) - 1;
-        int transactionJ = atoi(matrix[j][TRANSACTION_INDEX]) - 1;
+        sourceIndex = getIndexOfValue(matrix[i][TRANSACTION_INDEX], activeTrans, activeTransCount);
+        destinyIndex = getIndexOfValue(matrix[j][TRANSACTION_INDEX], activeTrans, activeTransCount);
 
-        dependencyGraph[transactionI][transactionJ]++;
+        dependencyGraph[sourceIndex][destinyIndex]++;
       }
-
   }
 
-  return dependencyGraph;
+  exitsCycle = cycle(dependencyGraph, activeTransCount);
+
+  if (dependencyGraph)
+  {
+    for (i = 0; i < activeTransCount; i++)
+      free(dependencyGraph[i]);
+    free(dependencyGraph);
+  }
+
+  return exitsCycle == -1 ? -1 : !exitsCycle;
 }

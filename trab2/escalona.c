@@ -10,9 +10,7 @@ int main()
 {
   char ***matrix, **activeTrans;
   int *delimitedSchedules, delimitedSchedulesSize, linesQnt,
-      startIndex, endIndex, cycle, equivalentView, activeTransCount, i, j, success;
-  uint *dependencyGraphSize, **dependencyGraph;
-  dependencyGraphSize = malloc(sizeof(uint));
+      startIndex, endIndex, conflictSerializable, equivalentView, activeTransCount, i, j, success;
 
   success = 1;
 
@@ -36,11 +34,12 @@ int main()
       continue;
     }
 
-    dependencyGraph = buildDependencyGraph(matrix, startIndex, endIndex, dependencyGraphSize);
-
-    Queue *queue = initQueue();
-    cycle = khan(dependencyGraph, *dependencyGraphSize, queue);
-
+    conflictSerializable = checkConflictSerializable(matrix, activeTrans, activeTransCount, startIndex, endIndex);
+    if (conflictSerializable == -1)
+    {
+      success = 0;
+      continue;
+    }
     // equivalentView = checkEquivalencyView(matrix, activeTrans, activeTransCount, startIndex, endIndex);
 
     printf("%d ", i + 1);
@@ -50,10 +49,11 @@ int main()
       if (j != activeTransCount - 1)
         printf(",");
     }
-    printf(" %s", cycle ? "NS" : "SS");
+    printf(" %s", conflictSerializable ? "SS" : "NS");
     printf(" %s\n", equivalentView ? "SV" : "NV");
 
     startIndex = endIndex + 1;
+
     free(activeTrans);
     activeTrans = NULL;
   }
@@ -66,8 +66,6 @@ int main()
 
     for (i = 0; i < linesQnt; i++)
       free(matrix[i]);
-
-    free(matrix);
   }
 
   if (activeTrans)

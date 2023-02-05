@@ -6,6 +6,6 @@
 #include "utils.h"
 #include "queue.h"
 
-int khan(uint **dependencyGraph, uint dependencyGraphSize, Queue *serializedTransactions);
+int cycle(int **directedGraph, int directedGraphSize);
 
 #endif

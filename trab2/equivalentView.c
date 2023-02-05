@@ -1,11 +1,11 @@
 #include "equivalentView.h"
 
-int combineAndCheckCycle(uint **polygraph, int possibilityOne[][2], int possibilityTwo[][2], int *possibilities, int *data, int polygraphSize, int start, int end, int index, int k)
+int combineAndCheckCycle(int **polygraph, int possibilityOne[][2], int possibilityTwo[][2], int *possibilities, int *data, int polygraphSize, int start, int end, int index, int k)
 {
   if (index == k)
   {
     Queue *queue;
-    int sourceIndex, destinyIndex, cycle;
+    int sourceIndex, destinyIndex, exitsCycle;
     for (int j = 0; j < k; j++)
     {
       if (data[j] == 1)
@@ -22,10 +22,10 @@ int combineAndCheckCycle(uint **polygraph, int possibilityOne[][2], int possibil
     }
 
     queue = initQueue();
-    cycle = khan(polygraph, polygraphSize, queue);
+    exitsCycle = cycle(polygraph, polygraphSize);
     cleanQueue(queue);
 
-    if (cycle)
+    if (exitsCycle)
       return 1;
 
     for (int j = 0; j < k; j++)
@@ -56,7 +56,7 @@ int combineAndCheckCycle(uint **polygraph, int possibilityOne[][2], int possibil
   return 0;
 }
 
-int checkCycle(uint **polygraph, int possibilityOne[][2], int possibilityTwo[][2], int polygraphSize, int possibilityCount)
+int checkCycle(int **polygraph, int possibilityOne[][2], int possibilityTwo[][2], int polygraphSize, int possibilityCount)
 {
   int possibilities[] = {1, 2};
   int k = possibilityCount;
@@ -65,18 +65,18 @@ int checkCycle(uint **polygraph, int possibilityOne[][2], int possibilityTwo[][2
   return combineAndCheckCycle(polygraph, possibilityOne, possibilityTwo, possibilities, data, polygraphSize, 0, n - 1, 0, k);
 }
 
-int checkEquivalencyView(char ***matrix, char **activeTrans, int activeTransCount, uint startIndex, uint endIndex)
+int checkEquivalencyView(char ***matrix, char **activeTrans, int activeTransCount, int startIndex, int endIndex)
 {
   Queue *queue;
   int sourceIndex, destinyIndex, auxSourceIndex, auxDestinyIndex, auxSourceIndexTwo, auxDestinyIndexTwo, cycle, equivalent, i, j, k,
       newMatrixSize, found, possibilityOne[100][2], possibilityTwo[100][2], countPossibility;
-  uint **polygraph;
+  int **polygraph;
   char ***newMatrix;
 
   const int INITIAL_TRANS_INDEX = 0;
   const int FINAL_TRANS_INDEX = activeTransCount + 1;
 
-  polygraph = initUintMatrixWith(0, activeTransCount + 2, activeTransCount + 2);
+  polygraph = initIntMatrixWith(0, activeTransCount + 2, activeTransCount + 2);
   if (!polygraph)
     return -1;
 

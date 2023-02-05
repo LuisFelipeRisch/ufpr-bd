@@ -3,9 +3,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "utils.h"
 #include <string.h>
+#include "utils.h"
+#include "queue.h"
+#include "khan.h"
 
-uint **buildDependencyGraph(char ***matrix, uint startIndex, uint endIndex, uint *dependencyGraphSize);
+int checkConflictSerializable(char ***matrix, char **activeTrans, int activeTransCount, int startIndex, int endIndex);
 
 #endif

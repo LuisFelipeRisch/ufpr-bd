@@ -7,6 +7,6 @@
 #include "queue.h"
 #include "khan.h"
 
-int checkEquivalencyView(char ***matrix, char **activeTrans, int activeTransCount, uint startIndex, uint endIndex);
+int checkEquivalencyView(char ***matrix, char **activeTrans, int activeTransCount, int startIndex, int endIndex);
 
 #endif

@@ -1,55 +1,76 @@
 #include "khan.h"
 
-int *buildIndegreeArray(uint **dependencyGraph, uint dependencyGraphSize){
-  int *indegreeArray = initIntArrayWith(0, dependencyGraphSize);
-  if(!indegreeArray)
+int *buildIndegreeArray(int **directedGraph, int graphSize)
+{
+  int i, j, *indegreeArray;
+
+  indegreeArray = initIntArrayWith(0, graphSize);
+  if (!indegreeArray)
     return NULL;
 
-  for (uint j = 0; j < dependencyGraphSize; j++)
-    for (uint i = 0; i < dependencyGraphSize; i++)
-      indegreeArray[j] += dependencyGraph[i][j];
+  for (j = 0; j < graphSize; j++)
+    for (i = 0; i < graphSize; i++)
+      indegreeArray[j] += directedGraph[i][j];
 
   return indegreeArray;
 }
 
-void enqueueWhenZero(Queue *queue, int *indegreeArray, uint dependencyGraphSize){
-  for (uint i = 0; i < dependencyGraphSize; i++)
-    if(!indegreeArray[i])
+void enqueueWhenZero(Queue *queue, int *indegreeArray, int graphSize)
+{
+  int i;
+  for (i = 0; i < graphSize; i++)
+    if (!indegreeArray[i])
     {
       enqueue(queue, i);
       indegreeArray[i] = -1;
     }
 }
 
-int isThereCycle(int *indegreeArray, uint dependencyGraphSize){
-  for (uint i = 0; i < dependencyGraphSize; i++)
-    if(indegreeArray[i] > 0)
+int isThereCycle(int *indegreeArray, int graphSize)
+{
+  for (int i = 0; i < graphSize; i++)
+    if (indegreeArray[i] > 0)
       return 1;
 
   return 0;
 }
 
-int khan(uint **dependencyGraph, uint dependencyGraphSize, Queue *serializedTransactions){
-  int *indegreeArray = buildIndegreeArray(dependencyGraph, dependencyGraphSize);
-  if(!indegreeArray)
-    return 0;
+int cycle(int **directedGraph, int directedGraphSize)
+{
+  Queue *queue;
+  int *indegreeArray, success, i, transactionIndex, exitsCycle;
 
-  Queue *queue = initQueue();
-  if(!queue)
-    return 0;
+  success = 1;
 
-  enqueueWhenZero(queue, indegreeArray, dependencyGraphSize);
+  indegreeArray = buildIndegreeArray(directedGraph, directedGraphSize);
+  if (!indegreeArray)
+    success = 0;
 
-  int transactionIndex;
-  while (!isEmpty(queue))
+  queue = initQueue();
+  if (!queue)
+    success = 0;
+
+  if (success)
   {
-    transactionIndex = dequeue(queue);
-    for (uint j = 0; j < dependencyGraphSize; j++)
-      indegreeArray[j] -= dependencyGraph[transactionIndex][j];
+    enqueueWhenZero(queue, indegreeArray, directedGraphSize);
 
-    enqueue(serializedTransactions, transactionIndex);
-    enqueueWhenZero(queue, indegreeArray, dependencyGraphSize);
+    while (!isEmpty(queue))
+    {
+      transactionIndex = dequeue(queue);
+      for (i = 0; i < directedGraphSize; i++)
+        indegreeArray[i] -= directedGraph[transactionIndex][i];
+
+      enqueueWhenZero(queue, indegreeArray, directedGraphSize);
+    }
+
+    exitsCycle = isThereCycle(indegreeArray, directedGraphSize);
   }
 
-  return isThereCycle(indegreeArray, dependencyGraphSize);
+  if (queue)
+    cleanQueue(queue);
+
+  if (indegreeArray)
+    free(indegreeArray);
+
+  return success ? exitsCycle : -1;
 }

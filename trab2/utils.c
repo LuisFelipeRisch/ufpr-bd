@@ -6,7 +6,7 @@ int **allocIntMatrix(uint row, uint col);
 uint **allocUintMatrix(uint row, uint col);
 int *initIntArrayWith(int number, uint size);
 uint *initUintArrayWith(uint number, uint size);
-int **initIntMatrixWith(int number, uint row, uint col);
+int **initIntMatrixWith(int number, int row, int col);
 uint **initUintMatrixWith(uint number, uint row, uint col);
 int *delimitSchedules(char ***matrix, int linesQnt, int *indexedQnt);
 void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex);
@@ -107,15 +107,16 @@ uint *initUintArrayWith(uint number, uint size)
   return array;
 }
 
-int **initIntMatrixWith(int number, uint row, uint col)
+int **initIntMatrixWith(int number, int row, int col)
 {
+  int i, j;
   int **matrix = allocIntMatrix(row, col);
 
   if (!matrix)
     return NULL;
 
-  for (uint i = 0; i < row; i++)
-    for (uint j = 0; j < col; j++)
+  for (i = 0; i < row; i++)
+    for (j = 0; j < col; j++)
       matrix[i][j] = number;
 
   return matrix;

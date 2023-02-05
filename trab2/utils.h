@@ -28,7 +28,7 @@ int **allocIntMatrix(uint row, uint col);
 uint **allocUintMatrix(uint row, uint col);
 int *initIntArrayWith(int number, uint size);
 uint *initUintArrayWith(uint number, uint size);
-int **initIntMatrixWith(int number, uint row, uint col);
+int **initIntMatrixWith(int number, int row, int col);
 uint **initUintMatrixWith(uint number, uint row, uint col);
 int *delimitSchedules(char ***matrix, int linesQnt, int *indexedQnt);
 void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex);
