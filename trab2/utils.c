@@ -11,7 +11,7 @@ uint **initUintMatrixWith(uint number, uint row, uint col);
 int *delimitSchedules(char ***matrix, int linesQnt, int *indexedQnt);
 void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex);
 int getUniqAttributesSchedule(char ***matrix, char **attributes, int *attributesCount, uint startIndex, uint endIndex);
-int getActiveTransactions(char ***matrix, char **activeTrans, int *activeTransCount, uint startIndex, uint endIndex);
+char **getActiveTransactions(char ***matrix, int *activeTransCount, int startIndex, int endIndex);
 int getIndexOfValue(char *value, char **matrix, int matrixSize);
 char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, uint startIndex, uint endIndex);
 char ***readEntryFromStdin(int *linesQnt);
@@ -275,10 +275,15 @@ int getUniqAttributesSchedule(char ***matrix, char **attributes, int *attributes
   return 1;
 }
 
-int getActiveTransactions(char ***matrix, char **activeTrans, int *activeTransCount, uint startIndex, uint endIndex)
+char **getActiveTransactions(char ***matrix, int *activeTransCount, int startIndex, int endIndex)
 {
-  uint i, j;
-  int transExits;
+  int i, j, transExits;
+  char **activeTrans;
+
+  *activeTransCount = 0;
+  activeTrans = malloc(sizeof(char *));
+  if (!activeTrans)
+    return NULL;
 
   for (i = startIndex; i <= endIndex; i++)
   {
@@ -289,16 +294,26 @@ int getActiveTransactions(char ***matrix, char **activeTrans, int *activeTransCo
 
     if (!transExits)
     {
-      activeTrans[*activeTransCount] = calloc(strlen(matrix[i][TRANSACTION_INDEX]), sizeof(char));
+      activeTrans[*activeTransCount] = calloc(sizeof(matrix[i][TRANSACTION_INDEX]), sizeof(char));
       if (!activeTrans[*activeTransCount])
-        return -1;
+      {
+        j = *activeTransCount - 1;
+        while (j >= 0)
+        {
+          free(activeTrans[j]);
+          j--;
+        }
+        free(activeTrans);
 
-      memcpy(activeTrans[*activeTransCount], matrix[i][TRANSACTION_INDEX], strlen(matrix[i][TRANSACTION_INDEX]));
+        return NULL;
+      }
+
+      memcpy(activeTrans[*activeTransCount], matrix[i][TRANSACTION_INDEX], sizeof(matrix[i][TRANSACTION_INDEX]));
       (*activeTransCount)++;
     }
   }
 
-  return 1;
+  return activeTrans;
 }
 
 int getIndexOfValue(char *value, char **matrix, int matrixSize)

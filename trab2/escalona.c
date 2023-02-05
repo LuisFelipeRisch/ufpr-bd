@@ -29,12 +29,12 @@ int main()
   {
     endIndex = delimitedSchedules[i];
 
-    activeTransCount = 0;
-    activeTrans = malloc(sizeof(char *));
+    activeTrans = getActiveTransactions(matrix, &activeTransCount, startIndex, endIndex);
     if (!activeTrans)
+    {
       success = 0;
-
-    getActiveTransactions(matrix, activeTrans, &activeTransCount, startIndex, endIndex);
+      continue;
+    }
 
     dependencyGraph = buildDependencyGraph(matrix, startIndex, endIndex, dependencyGraphSize);
 
