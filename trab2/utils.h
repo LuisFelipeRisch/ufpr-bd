@@ -32,10 +32,10 @@ int **initIntMatrixWith(int number, int row, int col);
 uint **initUintMatrixWith(uint number, uint row, uint col);
 int *delimitSchedules(char ***matrix, int linesQnt, int *indexedQnt);
 void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex);
-int getUniqAttributesSchedule(char ***matrix, char **attributes, int *attributesCount, uint startIndex, uint endIndex);
+char **getUniqAttributesSchedule(char ***matrix, int *attributesCount, int startIndex, int endIndex);
 char **getActiveTransactions(char ***matrix, int *activeTransCount, int startIndex, int endIndex);
 int getIndexOfValue(char *value, char **matrix, int matrixSize);
-char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, uint startIndex, uint endIndex);
+char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, int startIndex, int endIndex);
 char ***readEntryFromStdin(int *linesQnt);
 
 #endif

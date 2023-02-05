@@ -1,21 +1,5 @@
 #include "utils.h"
 
-uint *allocUintArray(uint size);
-int *allocIntArray(uint size);
-int **allocIntMatrix(uint row, uint col);
-uint **allocUintMatrix(uint row, uint col);
-int *initIntArrayWith(int number, uint size);
-uint *initUintArrayWith(uint number, uint size);
-int **initIntMatrixWith(int number, int row, int col);
-uint **initUintMatrixWith(uint number, uint row, uint col);
-int *delimitSchedules(char ***matrix, int linesQnt, int *indexedQnt);
-void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex);
-int getUniqAttributesSchedule(char ***matrix, char **attributes, int *attributesCount, uint startIndex, uint endIndex);
-char **getActiveTransactions(char ***matrix, int *activeTransCount, int startIndex, int endIndex);
-int getIndexOfValue(char *value, char **matrix, int matrixSize);
-char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, uint startIndex, uint endIndex);
-char ***readEntryFromStdin(int *linesQnt);
-
 uint *allocUintArray(uint size)
 {
   uint *array = calloc(size, sizeof(uint));
@@ -247,10 +231,15 @@ void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, u
       push(timestamps, atoi(matrix[i][TIME_INDEX]));
 }
 
-int getUniqAttributesSchedule(char ***matrix, char **attributes, int *attributesCount, uint startIndex, uint endIndex)
+char **getUniqAttributesSchedule(char ***matrix, int *attributesCount, int startIndex, int endIndex)
 {
-  uint i, j;
-  int attrExists;
+  char **scheduleAttrs;
+  int i, j, attrExists;
+
+  *attributesCount = 0;
+  scheduleAttrs = malloc(sizeof(char *));
+  if (!scheduleAttrs)
+    return NULL;
 
   for (i = startIndex; i <= endIndex; i++)
   {
@@ -259,21 +248,31 @@ int getUniqAttributesSchedule(char ***matrix, char **attributes, int *attributes
 
     attrExists = 0;
     for (j = 0; j < *attributesCount && !attrExists; j++)
-      if (!strcmp(attributes[j], matrix[i][ATTRIBUTE_INDEX]))
+      if (!strcmp(scheduleAttrs[j], matrix[i][ATTRIBUTE_INDEX]))
         attrExists = 1;
 
     if (!attrExists)
     {
-      attributes[*attributesCount] = calloc(strlen(matrix[i][ATTRIBUTE_INDEX]), sizeof(char));
-      if (!attributes[*attributesCount])
-        return -1;
+      scheduleAttrs[*attributesCount] = calloc(sizeof(matrix[i][ATTRIBUTE_INDEX]), sizeof(char));
+      if (!scheduleAttrs[*attributesCount])
+      {
+        j = *attributesCount - 1;
+        while (j >= 0)
+        {
+          free(scheduleAttrs[j]);
+          j--;
+        }
+        free(scheduleAttrs);
 
-      memcpy(attributes[*attributesCount], matrix[i][ATTRIBUTE_INDEX], strlen(matrix[i][ATTRIBUTE_INDEX]));
+        return NULL;
+      }
+
+      memcpy(scheduleAttrs[*attributesCount], matrix[i][ATTRIBUTE_INDEX], sizeof(matrix[i][ATTRIBUTE_INDEX]));
       (*attributesCount)++;
     }
   }
 
-  return 1;
+  return scheduleAttrs;
 }
 
 char **getActiveTransactions(char ***matrix, int *activeTransCount, int startIndex, int endIndex)
@@ -330,40 +329,45 @@ int getIndexOfValue(char *value, char **matrix, int matrixSize)
   return found;
 }
 
-char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, uint startIndex, uint endIndex)
+char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, int startIndex, int endIndex)
 {
   char **scheduleAttrs, ***newMatrix, line[256], *splittedLine;
-  int splitsCount, maxBuffer, i, j, scheduleAttrsCount;
+  int splitsCount, maxBuffer, i, j, scheduleAttrsCount, success;
 
-  newMatrix = malloc(sizeof(char **));
-  if (!newMatrix)
-    return NULL;
-
-  scheduleAttrsCount = 0;
-  scheduleAttrs = malloc(sizeof(char *));
-  if (!scheduleAttrs)
-    return NULL;
-
-  getUniqAttributesSchedule(matrix, scheduleAttrs, &scheduleAttrsCount, startIndex, endIndex);
+  success = 1;
 
   *newMatrixSize = 0;
+  newMatrix = malloc(sizeof(char **));
+  if (!newMatrix)
+    success = 0;
+
+  scheduleAttrs = getUniqAttributesSchedule(matrix, &scheduleAttrsCount, startIndex, endIndex);
+  if (!scheduleAttrs)
+    success = 0;
+
   i = 0;
-  while (i < scheduleAttrsCount)
+  while (i < scheduleAttrsCount && success)
   {
     maxBuffer = sizeof("0") + sizeof(INITIAL_TRANS_IDENTIFIER) + sizeof(WRITE) + sizeof(scheduleAttrs[i]) + 1;
     snprintf(line, maxBuffer, "%s %s %s %s", "0", INITIAL_TRANS_IDENTIFIER, WRITE, scheduleAttrs[i]);
 
     newMatrix[*newMatrixSize] = calloc(COL, sizeof(char *));
     if (!newMatrix[*newMatrixSize])
-      return NULL;
+    {
+      success = 0;
+      continue;
+    }
 
     splittedLine = strtok(line, " ");
     splitsCount = 0;
-    while (splittedLine != NULL && splitsCount >= 0 && splitsCount <= 3)
+    while (splittedLine != NULL && splitsCount >= 0 && splitsCount <= 3 && success)
     {
       newMatrix[*newMatrixSize][splitsCount] = calloc(sizeof(splittedLine), sizeof(char));
       if (!newMatrix[*newMatrixSize][splitsCount])
-        return NULL;
+      {
+        success = 0;
+        continue;
+      }
 
       memcpy(newMatrix[*newMatrixSize][splitsCount], splittedLine, sizeof(splittedLine));
       splittedLine = strtok(NULL, " ");
@@ -375,20 +379,26 @@ char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, 
     i++;
   }
 
-  for (i = startIndex; i <= endIndex; i++)
+  for (i = startIndex; i <= endIndex && success; i++)
   {
     if (!strcmp(matrix[i][OPERATION_INDEX], COMMIT))
       continue;
 
     newMatrix[*newMatrixSize] = calloc(COL, sizeof(char *));
     if (!newMatrix[*newMatrixSize])
-      return NULL;
+    {
+      success = 0;
+      continue;
+    }
 
-    for (j = 0; j < COL; j++)
+    for (j = 0; j < COL && success; j++)
     {
       newMatrix[*newMatrixSize][j] = calloc(sizeof(matrix[i][j]), sizeof(char));
       if (!newMatrix)
-        return NULL;
+      {
+        success = 0;
+        continue;
+      }
 
       memcpy(newMatrix[*newMatrixSize][j], matrix[i][j], sizeof(matrix[i][j]));
     }
@@ -397,22 +407,28 @@ char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, 
   }
 
   i = 0;
-  while (i < scheduleAttrsCount)
+  while (i < scheduleAttrsCount && success)
   {
     maxBuffer = sizeof("0") + sizeof(FINAL_TRANS_IDENTIFIER) + sizeof(READ) + sizeof(scheduleAttrs[i]) + 1;
     snprintf(line, maxBuffer, "%s %s %s %s", "0", FINAL_TRANS_IDENTIFIER, READ, scheduleAttrs[i]);
 
     newMatrix[*newMatrixSize] = calloc(COL, sizeof(char *));
     if (!newMatrix[*newMatrixSize])
-      return NULL;
+    {
+      success = 0;
+      continue;
+    }
 
     splittedLine = strtok(line, " ");
     splitsCount = 0;
-    while (splittedLine != NULL && splitsCount >= 0 && splitsCount <= 3)
+    while (splittedLine != NULL && splitsCount >= 0 && splitsCount <= 3 && success)
     {
       newMatrix[*newMatrixSize][splitsCount] = calloc(sizeof(splittedLine), sizeof(char));
       if (!newMatrix[*newMatrixSize][splitsCount])
-        return NULL;
+      {
+        success = 0;
+        continue;
+      }
 
       memcpy(newMatrix[*newMatrixSize][splitsCount], splittedLine, sizeof(splittedLine));
       splittedLine = strtok(NULL, " ");
@@ -424,7 +440,25 @@ char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, 
     i++;
   }
 
-  return newMatrix;
+  if (scheduleAttrs)
+  {
+    for (i = 0; i < scheduleAttrsCount; i++)
+      free(scheduleAttrs[i]);
+    free(scheduleAttrs);
+  }
+
+  if (!success)
+    if (newMatrix)
+    {
+      for (i = 0; i < *newMatrixSize; i++)
+        for (j = 0; j < COL; j++)
+          free(newMatrix[i][j]);
+
+      for (i = 0; i < *newMatrixSize; i++)
+        free(newMatrix[i]);
+    }
+
+  return success ? newMatrix : NULL;
 }
 
 char ***readEntryFromStdin(int *linesQnt)

@@ -40,7 +40,8 @@ int main()
       success = 0;
       continue;
     }
-    // equivalentView = checkEquivalencyView(matrix, activeTrans, activeTransCount, startIndex, endIndex);
+
+    equivalentView = checkEquivalencyView(matrix, activeTrans, activeTransCount, startIndex, endIndex);
 
     printf("%d ", i + 1);
     for (uint j = 0; j < activeTransCount; j++)
@@ -54,7 +55,13 @@ int main()
 
     startIndex = endIndex + 1;
 
-    free(activeTrans);
+    if (activeTrans)
+    {
+      for (j = 0; j < activeTransCount; j++)
+        free(activeTrans[j]);
+
+      free(activeTrans);
+    }
     activeTrans = NULL;
   }
 

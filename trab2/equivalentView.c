@@ -4,7 +4,6 @@ int combineAndCheckCycle(int **polygraph, int possibilityOne[][2], int possibili
 {
   if (index == k)
   {
-    Queue *queue;
     int sourceIndex, destinyIndex, exitsCycle;
     for (int j = 0; j < k; j++)
     {
@@ -21,9 +20,7 @@ int combineAndCheckCycle(int **polygraph, int possibilityOne[][2], int possibili
       polygraph[sourceIndex][destinyIndex]++;
     }
 
-    queue = initQueue();
     exitsCycle = cycle(polygraph, polygraphSize);
-    cleanQueue(queue);
 
     if (exitsCycle)
       return 1;
@@ -67,10 +64,8 @@ int checkCycle(int **polygraph, int possibilityOne[][2], int possibilityTwo[][2]
 
 int checkEquivalencyView(char ***matrix, char **activeTrans, int activeTransCount, int startIndex, int endIndex)
 {
-  Queue *queue;
-  int sourceIndex, destinyIndex, auxSourceIndex, auxDestinyIndex, auxSourceIndexTwo, auxDestinyIndexTwo, cycle, equivalent, i, j, k,
-      newMatrixSize, found, possibilityOne[100][2], possibilityTwo[100][2], countPossibility;
-  int **polygraph;
+  int **polygraph, sourceIndex, destinyIndex, auxSourceIndex, auxDestinyIndex, auxSourceIndexTwo, auxDestinyIndexTwo, equivalent, i, j, k,
+      newMatrixSize, found, possibilityOne[100][2], possibilityTwo[100][2], countPossibility, success;
   char ***newMatrix;
 
   const int INITIAL_TRANS_INDEX = 0;
