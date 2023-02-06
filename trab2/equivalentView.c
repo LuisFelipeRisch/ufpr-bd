@@ -7,7 +7,6 @@ int combineAndCheckCycle(int **polygraph, int possibilityOne[][2], int possibili
     int sourceIndex, destinyIndex, exitsCycle;
     for (int j = 0; j < k; j++)
     {
-      printf("%d ", data[j]);
       if (data[j] == 1)
       {
         sourceIndex = possibilityOne[j][0];
@@ -18,29 +17,63 @@ int combineAndCheckCycle(int **polygraph, int possibilityOne[][2], int possibili
         sourceIndex = possibilityTwo[j][0];
         destinyIndex = possibilityTwo[j][1];
       }
+
       polygraph[sourceIndex][destinyIndex]++;
     }
-
-    printf("\n");
 
     exitsCycle = cycle(polygraph, polygraphSize);
 
     if (exitsCycle)
-      return 1;
-
-    for (int j = 0; j < k; j++)
     {
-      if (data[j] == 1)
+      for (int j = 0; j < k; j++)
       {
-        sourceIndex = possibilityOne[j][0];
-        destinyIndex = possibilityOne[j][1];
+        if (data[j] == 1)
+        {
+          sourceIndex = possibilityOne[j][0];
+          destinyIndex = possibilityOne[j][1];
+        }
+        else
+        {
+          sourceIndex = possibilityTwo[j][0];
+          destinyIndex = possibilityTwo[j][1];
+        }
+        polygraph[sourceIndex][destinyIndex]--;
       }
-      else
+
+      for (int j = 0; j < k; j++)
       {
-        sourceIndex = possibilityTwo[j][0];
-        destinyIndex = possibilityTwo[j][1];
+        if (data[j] == 1)
+        {
+          sourceIndex = possibilityTwo[j][0];
+          destinyIndex = possibilityTwo[j][1];
+        }
+        else
+        {
+          sourceIndex = possibilityOne[j][0];
+          destinyIndex = possibilityOne[j][1];
+        }
+        polygraph[sourceIndex][destinyIndex]++;
       }
-      polygraph[sourceIndex][destinyIndex]--;
+
+      exitsCycle = cycle(polygraph, polygraphSize);
+
+      if (exitsCycle)
+        return 1;
+
+      for (int j = 0; j < k; j++)
+      {
+        if (data[j] == 1)
+        {
+          sourceIndex = possibilityTwo[j][0];
+          destinyIndex = possibilityTwo[j][1];
+        }
+        else
+        {
+          sourceIndex = possibilityOne[j][0];
+          destinyIndex = possibilityOne[j][1];
+        }
+        polygraph[sourceIndex][destinyIndex]--;
+      }
     }
 
     return 0;
@@ -49,8 +82,7 @@ int combineAndCheckCycle(int **polygraph, int possibilityOne[][2], int possibili
   for (int i = start; i <= end; i++)
   {
     data[index] = possibilities[i];
-    if (combineAndCheckCycle(polygraph, possibilityOne, possibilityTwo, possibilities, data, polygraphSize, start, end, index + 1, k))
-      return 1;
+    combineAndCheckCycle(polygraph, possibilityOne, possibilityTwo, possibilities, data, polygraphSize, start, end, index + 1, k);
   }
 
   return 0;
@@ -104,8 +136,8 @@ int checkEquivalencyView(char ***matrix, Array *activeTrans, int startIndex, int
 
     actualJ = j + 1;
 
-    sourceIndex = !strcmp(newMatrix[actualJ][TRANSACTION_INDEX], FINAL_TRANS_IDENTIFIER) ? FINAL_TRANS_INDEX : checkElemExistence(activeTrans, atoi(newMatrix[actualJ][TRANSACTION_INDEX])) + 1;
-    destinyIndex = !strcmp(newMatrix[i][TRANSACTION_INDEX], INITIAL_TRANS_IDENTIFIER) ? INITIAL_TRANS_INDEX : checkElemExistence(activeTrans, atoi(newMatrix[i][TRANSACTION_INDEX])) + 1;
+    sourceIndex = !strcmp(newMatrix[actualJ][TRANSACTION_INDEX], INITIAL_TRANS_IDENTIFIER) ? INITIAL_TRANS_INDEX : checkElemExistence(activeTrans, atoi(newMatrix[actualJ][TRANSACTION_INDEX])) + 1;
+    destinyIndex = !strcmp(newMatrix[i][TRANSACTION_INDEX], FINAL_TRANS_IDENTIFIER) ? FINAL_TRANS_INDEX : checkElemExistence(activeTrans, atoi(newMatrix[i][TRANSACTION_INDEX])) + 1;
     polygraph[sourceIndex][destinyIndex]++;
 
     k = i + 1;
