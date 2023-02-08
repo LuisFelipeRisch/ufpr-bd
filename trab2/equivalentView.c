@@ -102,8 +102,7 @@ int isScheduleViewEquivalentRecursively(char ***matrix, int **currentPolyGraph, 
 
 int checkEquivalencyView(char ***matrix, Array *activeTrans, int startIndex, int endIndex)
 {
-  int **polygraph, sourceIndex, destinyIndex, auxSourceIndex, auxDestinyIndex, auxSourceIndexTwo, auxDestinyIndexTwo, equivalent, i, j, k, actualJ,
-      newMatrixSize, found, possibilityOne[100][2], possibilityTwo[100][2], countPossibility, success;
+  int **polygraph, sourceIndex, destinyIndex, equivalent, i, j, actualJ, newMatrixSize, found, success;
   char ***newMatrix;
 
   const int INITIAL_TRANS_INDEX = 0;
@@ -117,7 +116,6 @@ int checkEquivalencyView(char ***matrix, Array *activeTrans, int startIndex, int
   if (!newMatrix)
     success = 0;
 
-  countPossibility = 0;
   for (i = 0; i < newMatrixSize && success; i++)
   {
     if (strcmp(newMatrix[i][OPERATION_INDEX], READ))
