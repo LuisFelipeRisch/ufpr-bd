@@ -1,16 +1,6 @@
 #include "utils.h"
 
-uint *allocUintArray(uint size)
-{
-  uint *array = calloc(size, sizeof(uint));
-
-  if (!array)
-    return NULL;
-
-  return array;
-}
-
-int *allocIntArray(uint size)
+int *allocIntArray(int size)
 {
   int *array = calloc(size, sizeof(int));
 
@@ -20,53 +10,7 @@ int *allocIntArray(uint size)
   return array;
 }
 
-int **allocIntMatrix(uint row, uint col)
-{
-  int **matrix = calloc(row, sizeof(int *));
-
-  if (!matrix)
-    return NULL;
-
-  for (uint i = 0; i < row; i++)
-  {
-    matrix[i] = allocIntArray(col);
-
-    if (!matrix[i])
-    {
-      for (uint j = i; j >= 0; j--)
-        free(matrix[j]);
-      free(matrix);
-      return NULL;
-    }
-  }
-
-  return matrix;
-}
-
-uint **allocUintMatrix(uint row, uint col)
-{
-  uint **matrix = calloc(row, sizeof(uint *));
-
-  if (!matrix)
-    return NULL;
-
-  for (uint i = 0; i < row; i++)
-  {
-    matrix[i] = allocUintArray(col);
-
-    if (!matrix[i])
-    {
-      for (uint j = i; j >= 0; j--)
-        free(matrix[j]);
-      free(matrix);
-      return NULL;
-    }
-  }
-
-  return matrix;
-}
-
-int *initIntArrayWith(int number, uint size)
+int *initIntArrayWith(int number, int size)
 {
   int *array = allocIntArray(size);
 
@@ -78,17 +22,27 @@ int *initIntArrayWith(int number, uint size)
   return array;
 }
 
-uint *initUintArrayWith(uint number, uint size)
+int **allocIntMatrix(int row, int col)
 {
-  uint *array = allocUintArray(size);
+  int **matrix = calloc(row, sizeof(int *));
 
-  if (!array)
+  if (!matrix)
     return NULL;
 
-  for (uint i = 0; i < size; i++)
-    array[i] = number;
+  for (int i = 0; i < row; i++)
+  {
+    matrix[i] = allocIntArray(col);
 
-  return array;
+    if (!matrix[i])
+    {
+      for (int j = i; j >= 0; j--)
+        free(matrix[j]);
+      free(matrix);
+      return NULL;
+    }
+  }
+
+  return matrix;
 }
 
 int **initIntMatrixWith(int number, int row, int col)
@@ -101,20 +55,6 @@ int **initIntMatrixWith(int number, int row, int col)
 
   for (i = 0; i < row; i++)
     for (j = 0; j < col; j++)
-      matrix[i][j] = number;
-
-  return matrix;
-}
-
-uint **initUintMatrixWith(uint number, uint row, uint col)
-{
-  uint **matrix = allocUintMatrix(row, col);
-
-  if (!matrix)
-    return NULL;
-
-  for (uint i = 0; i < row; i++)
-    for (uint j = 0; j < col; j++)
       matrix[i][j] = number;
 
   return matrix;
@@ -167,15 +107,6 @@ Array *delimitSchedules(char ***matrix, int linesQnt)
       freeArray(delimitedSchedules);
 
   return success ? delimitedSchedules : NULL;
-}
-
-void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex)
-{
-  uint i;
-
-  for (i = startIndex; i <= endIndex; i++)
-    if (strcmp(matrix[i][OPERATION_INDEX], COMMIT))
-      push(timestamps, atoi(matrix[i][TIME_INDEX]));
 }
 
 char **getUniqAttributesSchedule(char ***matrix, int *scheduleAttrsCount, int startIndex, int endIndex)
@@ -255,19 +186,6 @@ Array *getActiveTransactions(char ***matrix, int startIndex, int endIndex)
       freeArray(activeTrans);
 
   return success ? activeTrans : NULL;
-}
-
-int getIndexOfValue(char *value, char **matrix, int matrixSize)
-{
-  int i, found;
-
-  found = -1;
-
-  for (i = 0; i < matrixSize && found == -1; i++)
-    if (!strcmp(matrix[i], value))
-      found = i;
-
-  return found;
 }
 
 char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, int activeTransCount, int startIndex, int endIndex)

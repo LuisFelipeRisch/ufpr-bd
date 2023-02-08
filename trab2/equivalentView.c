@@ -2,7 +2,7 @@
 
 int isScheduleViewEquivalentRecursively(char ***matrix, int **currentPolyGraph, Array *activeTrans, int currentPolygraphSize, int startIndex, int matrixSize)
 {
-  int i, j, k, breakAll, sourceIndex, destinyIndex, sourceIndexTwo, destinyIndexTwo, success;
+  int i, j, k, breakAll, sourceIndex, destinyIndex, sourceIndexTwo, destinyIndexTwo, success, isCycledGraph;
 
   success = 1;
   breakAll = 0;
@@ -95,19 +95,23 @@ int isScheduleViewEquivalentRecursively(char ***matrix, int **currentPolyGraph, 
     return -1;
 
   if (i == matrixSize)
-    return !cycle(currentPolyGraph, currentPolygraphSize);
+  {
+    isCycledGraph = cycle(currentPolyGraph, currentPolygraphSize);
+    return isCycledGraph == -1 ? -1 : !isCycledGraph;
+  }
 
   return 0;
 }
 
 int checkEquivalencyView(char ***matrix, Array *activeTrans, int startIndex, int endIndex)
 {
-  int **polygraph, sourceIndex, destinyIndex, auxSourceIndex, auxDestinyIndex, auxSourceIndexTwo, auxDestinyIndexTwo, equivalent, i, j, k, actualJ,
-      newMatrixSize, found, possibilityOne[100][2], possibilityTwo[100][2], countPossibility, success;
+  int **polygraph, sourceIndex, destinyIndex, equivalent, i, j, actualJ, newMatrixSize, found, success;
   char ***newMatrix;
 
   const int INITIAL_TRANS_INDEX = 0;
   const int FINAL_TRANS_INDEX = activeTrans->used + 1;
+
+  success = 1;
 
   polygraph = initIntMatrixWith(0, activeTrans->used + 2, activeTrans->used + 2);
   if (!polygraph)
@@ -117,7 +121,6 @@ int checkEquivalencyView(char ***matrix, Array *activeTrans, int startIndex, int
   if (!newMatrix)
     success = 0;
 
-  countPossibility = 0;
   for (i = 0; i < newMatrixSize && success; i++)
   {
     if (strcmp(newMatrix[i][OPERATION_INDEX], READ))

@@ -22,19 +22,11 @@
 #define INITIAL_TRANS_IDENTIFIER "I"
 #define FINAL_TRANS_IDENTIFIER "F"
 
-uint *allocUintArray(uint size);
-int *allocIntArray(uint size);
-int **allocIntMatrix(uint row, uint col);
-uint **allocUintMatrix(uint row, uint col);
-int *initIntArrayWith(int number, uint size);
-uint *initUintArrayWith(uint number, uint size);
+int **allocIntMatrix(int row, int col);
+int *initIntArrayWith(int number, int size);
 int **initIntMatrixWith(int number, int row, int col);
-uint **initUintMatrixWith(uint number, uint row, uint col);
 Array *delimitSchedules(char ***matrix, int linesQnt);
-void getTimestampsSchedule(char ***matrix, Array *timestamps, uint startIndex, uint endIndex);
-char **getUniqAttributesSchedule(char ***matrix, int *attributesCount, int startIndex, int endIndex);
 Array *getActiveTransactions(char ***matrix, int startIndex, int endIndex);
-int getIndexOfValue(char *value, char **matrix, int matrixSize);
 char ***buildNewMatrixWithInitialFinalTrans(char ***matrix, int *newMatrixSize, int activeTransCount, int startIndex, int endIndex);
 char ***readEntryFromStdin(int *linesQnt);
 
