@@ -1,100 +1,103 @@
 #include "equivalentView.h"
 
-int combineAndCheckCycle(int **polygraph, int possibilityOne[][2], int possibilityTwo[][2], int *possibilities, int *data, int polygraphSize, int start, int end, int index, int k)
+int isScheduleViewEquivalentRecursively(char ***matrix, int **currentPolyGraph, Array *activeTrans, int currentPolygraphSize, int startIndex, int matrixSize)
 {
-  if (index == k)
-  {
-    int sourceIndex, destinyIndex, exitsCycle;
-    for (int j = 0; j < k; j++)
-    {
-      if (data[j] == 1)
-      {
-        sourceIndex = possibilityOne[j][0];
-        destinyIndex = possibilityOne[j][1];
-      }
-      else
-      {
-        sourceIndex = possibilityTwo[j][0];
-        destinyIndex = possibilityTwo[j][1];
-      }
+  int i, j, k, breakAll, sourceIndex, destinyIndex, sourceIndexTwo, destinyIndexTwo, success;
 
-      polygraph[sourceIndex][destinyIndex]++;
+  success = 1;
+  breakAll = 0;
+  i = startIndex;
+  while (i < matrixSize && !breakAll && success)
+  {
+    if (!strcmp(matrix[i][OPERATION_INDEX], WRITE))
+    {
+      j = i - 1;
+      while (j >= 0 && !breakAll && success)
+      {
+        if (!strcmp(matrix[j][OPERATION_INDEX], READ) &&
+            !strcmp(matrix[i][ATTRIBUTE_INDEX], matrix[j][ATTRIBUTE_INDEX]) &&
+            strcmp(matrix[i][TRANSACTION_INDEX], matrix[j][TRANSACTION_INDEX]))
+        {
+          k = j - 1;
+          while (k >= 0 && !breakAll && success)
+          {
+            if (!strcmp(matrix[k][OPERATION_INDEX], WRITE) &&
+                !strcmp(matrix[i][ATTRIBUTE_INDEX], matrix[k][ATTRIBUTE_INDEX]) &&
+                strcmp(matrix[i][TRANSACTION_INDEX], matrix[k][TRANSACTION_INDEX]) &&
+                strcmp(matrix[j][TRANSACTION_INDEX], matrix[k][TRANSACTION_INDEX]))
+            {
+              sourceIndex = !strcmp(matrix[i][TRANSACTION_INDEX], INITIAL_TRANS_IDENTIFIER) ? -1 : checkElemExistence(activeTrans, atoi(matrix[i][TRANSACTION_INDEX])) + 1;
+              destinyIndex = !strcmp(matrix[k][TRANSACTION_INDEX], INITIAL_TRANS_IDENTIFIER) ? -1 : checkElemExistence(activeTrans, atoi(matrix[k][TRANSACTION_INDEX])) + 1;
+
+              sourceIndexTwo = !strcmp(matrix[j][TRANSACTION_INDEX], FINAL_TRANS_IDENTIFIER) ? -1 : checkElemExistence(activeTrans, atoi(matrix[j][TRANSACTION_INDEX])) + 1;
+              destinyIndexTwo = !strcmp(matrix[i][TRANSACTION_INDEX], INITIAL_TRANS_IDENTIFIER) ? -1 : checkElemExistence(activeTrans, atoi(matrix[i][TRANSACTION_INDEX])) + 1;
+
+              if ((sourceIndex == -1 || destinyIndex == -1) && (sourceIndexTwo == -1 || destinyIndexTwo == -1))
+                break;
+
+              if ((sourceIndex == -1 || destinyIndex == -1))
+              {
+                currentPolyGraph[sourceIndexTwo][destinyIndexTwo]++;
+                break;
+              }
+
+              if ((sourceIndexTwo == -1 || destinyIndexTwo == -1))
+              {
+                currentPolyGraph[sourceIndex][destinyIndex]++;
+                break;
+              }
+
+              currentPolyGraph[sourceIndex][destinyIndex]++;
+              switch (isScheduleViewEquivalentRecursively(matrix, currentPolyGraph, activeTrans, currentPolygraphSize, i + 1, matrixSize))
+              {
+              case 1:
+                return 1;
+                break;
+              case -1:
+                success = 0;
+                break;
+              default:
+                break;
+              }
+              currentPolyGraph[sourceIndex][destinyIndex]--;
+
+              if (!success)
+                continue;
+
+              currentPolyGraph[sourceIndexTwo][destinyIndexTwo]++;
+              switch (isScheduleViewEquivalentRecursively(matrix, currentPolyGraph, activeTrans, currentPolygraphSize, i + 1, matrixSize))
+              {
+              case 1:
+                return 1;
+                break;
+              case -1:
+                success = 0;
+                break;
+              default:
+                break;
+              }
+              currentPolyGraph[sourceIndexTwo][destinyIndexTwo]--;
+
+              breakAll = 1;
+            }
+            k--;
+          }
+        }
+        j--;
+      }
     }
 
-    exitsCycle = cycle(polygraph, polygraphSize);
-
-    if (exitsCycle)
-    {
-      for (int j = 0; j < k; j++)
-      {
-        if (data[j] == 1)
-        {
-          sourceIndex = possibilityOne[j][0];
-          destinyIndex = possibilityOne[j][1];
-        }
-        else
-        {
-          sourceIndex = possibilityTwo[j][0];
-          destinyIndex = possibilityTwo[j][1];
-        }
-        polygraph[sourceIndex][destinyIndex]--;
-      }
-
-      for (int j = 0; j < k; j++)
-      {
-        if (data[j] == 1)
-        {
-          sourceIndex = possibilityTwo[j][0];
-          destinyIndex = possibilityTwo[j][1];
-        }
-        else
-        {
-          sourceIndex = possibilityOne[j][0];
-          destinyIndex = possibilityOne[j][1];
-        }
-        polygraph[sourceIndex][destinyIndex]++;
-      }
-
-      exitsCycle = cycle(polygraph, polygraphSize);
-
-      if (exitsCycle)
-        return 1;
-
-      for (int j = 0; j < k; j++)
-      {
-        if (data[j] == 1)
-        {
-          sourceIndex = possibilityTwo[j][0];
-          destinyIndex = possibilityTwo[j][1];
-        }
-        else
-        {
-          sourceIndex = possibilityOne[j][0];
-          destinyIndex = possibilityOne[j][1];
-        }
-        polygraph[sourceIndex][destinyIndex]--;
-      }
-    }
-
-    return 0;
+    if (!breakAll)
+      i++;
   }
 
-  for (int i = start; i <= end; i++)
-  {
-    data[index] = possibilities[i];
-    combineAndCheckCycle(polygraph, possibilityOne, possibilityTwo, possibilities, data, polygraphSize, start, end, index + 1, k);
-  }
+  if (!success)
+    return -1;
+
+  if (i == matrixSize)
+    return !cycle(currentPolyGraph, currentPolygraphSize);
 
   return 0;
-}
-
-int checkCycle(int **polygraph, int possibilityOne[][2], int possibilityTwo[][2], int polygraphSize, int possibilityCount)
-{
-  int possibilities[] = {1, 2};
-  int k = possibilityCount;
-  int n = 2;
-  int data[k];
-  return combineAndCheckCycle(polygraph, possibilityOne, possibilityTwo, possibilities, data, polygraphSize, 0, n - 1, 0, k);
 }
 
 int checkEquivalencyView(char ***matrix, Array *activeTrans, int startIndex, int endIndex)
@@ -115,7 +118,7 @@ int checkEquivalencyView(char ***matrix, Array *activeTrans, int startIndex, int
     success = 0;
 
   countPossibility = 0;
-  for (i = 0; i < newMatrixSize; i++)
+  for (i = 0; i < newMatrixSize && success; i++)
   {
     if (strcmp(newMatrix[i][OPERATION_INDEX], READ))
       continue;
@@ -139,59 +142,12 @@ int checkEquivalencyView(char ***matrix, Array *activeTrans, int startIndex, int
     sourceIndex = !strcmp(newMatrix[actualJ][TRANSACTION_INDEX], INITIAL_TRANS_IDENTIFIER) ? INITIAL_TRANS_INDEX : checkElemExistence(activeTrans, atoi(newMatrix[actualJ][TRANSACTION_INDEX])) + 1;
     destinyIndex = !strcmp(newMatrix[i][TRANSACTION_INDEX], FINAL_TRANS_IDENTIFIER) ? FINAL_TRANS_INDEX : checkElemExistence(activeTrans, atoi(newMatrix[i][TRANSACTION_INDEX])) + 1;
     polygraph[sourceIndex][destinyIndex]++;
-
-    k = i + 1;
-    while (k < newMatrixSize)
-    {
-      if (!strcmp(newMatrix[k][OPERATION_INDEX], WRITE) &&
-          !strcmp(newMatrix[i][ATTRIBUTE_INDEX], newMatrix[actualJ][ATTRIBUTE_INDEX]) &&
-          !strcmp(newMatrix[i][ATTRIBUTE_INDEX], newMatrix[k][ATTRIBUTE_INDEX]) &&
-          strcmp(newMatrix[i][TRANSACTION_INDEX], newMatrix[actualJ][TRANSACTION_INDEX]) &&
-          strcmp(newMatrix[i][TRANSACTION_INDEX], newMatrix[k][TRANSACTION_INDEX]) &&
-          strcmp(newMatrix[actualJ][TRANSACTION_INDEX], newMatrix[k][TRANSACTION_INDEX]))
-      {
-        auxSourceIndex = checkElemExistence(activeTrans, atoi(newMatrix[k][TRANSACTION_INDEX])) + 1;
-        auxDestinyIndex = !strcmp(newMatrix[actualJ][TRANSACTION_INDEX], INITIAL_TRANS_IDENTIFIER) ? -1 : checkElemExistence(activeTrans, atoi(newMatrix[actualJ][TRANSACTION_INDEX])) + 1;
-
-        auxSourceIndexTwo = !strcmp(newMatrix[i][TRANSACTION_INDEX], FINAL_TRANS_IDENTIFIER) ? -1 : checkElemExistence(activeTrans, atoi(newMatrix[i][TRANSACTION_INDEX])) + 1;
-        auxDestinyIndexTwo = checkElemExistence(activeTrans, atoi(newMatrix[k][TRANSACTION_INDEX])) + 1;
-
-        if (auxDestinyIndex == -1 && auxSourceIndexTwo == -1)
-        {
-          k++;
-          continue;
-        }
-
-        if (auxDestinyIndex == -1)
-        {
-          k++;
-
-          polygraph[auxSourceIndexTwo][auxDestinyIndexTwo]++;
-          continue;
-        }
-
-        if (auxSourceIndexTwo == -1)
-        {
-          k++;
-
-          polygraph[auxSourceIndex][auxDestinyIndex]++;
-          continue;
-        }
-
-        possibilityOne[countPossibility][0] = auxSourceIndex;
-        possibilityOne[countPossibility][1] = auxDestinyIndex;
-
-        possibilityTwo[countPossibility][0] = auxSourceIndexTwo;
-        possibilityTwo[countPossibility][1] = auxDestinyIndexTwo;
-
-        countPossibility++;
-      }
-
-      k++;
-    }
   }
 
-  equivalent = countPossibility > 0 ? !checkCycle(polygraph, possibilityOne, possibilityTwo, activeTrans->used + 2, countPossibility) : !cycle(polygraph, activeTrans->used + 2);
+  equivalent = isScheduleViewEquivalentRecursively(newMatrix, polygraph, activeTrans, activeTrans->used + 2, 0, newMatrixSize);
+
+  if (equivalent == -1)
+    success = 0;
 
   if (polygraph)
   {
@@ -217,5 +173,5 @@ int checkEquivalencyView(char ***matrix, Array *activeTrans, int startIndex, int
     free(newMatrix);
   }
 
-  return equivalent;
+  return success ? equivalent : -1;
 }
