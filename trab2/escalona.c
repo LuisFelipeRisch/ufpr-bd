@@ -42,6 +42,11 @@ int main()
     }
 
     equivalentView = checkEquivalencyView(matrix, activeTrans, startIndex, endIndex);
+    if (equivalentView == -1)
+    {
+      success = 0;
+      continue;
+    }
 
     printf("%d ", i + 1);
     for (j = 0; j < activeTrans->used; j++)
