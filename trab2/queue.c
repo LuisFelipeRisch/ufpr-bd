@@ -1,9 +1,10 @@
 #include "queue.h"
 
-Queue *initQueue(){
+Queue *initQueue()
+{
   Queue *queue = malloc(sizeof(Queue));
 
-  if(!queue)
+  if (!queue)
     return NULL;
 
   queue->root = NULL;
@@ -12,9 +13,10 @@ Queue *initQueue(){
   return queue;
 }
 
-int enqueue(Queue *queue, uint data){
+int enqueue(Queue *queue, int data)
+{
   Node *node = malloc(sizeof(Node));
-  if(!node)
+  if (!node)
     return 0;
 
   Node *root = queue->root;
@@ -22,10 +24,13 @@ int enqueue(Queue *queue, uint data){
   node->leftNode = NULL;
   node->nextNode = NULL;
 
-  if(!root){
+  if (!root)
+  {
     queue->root = node;
     queue->end = node;
-  } else {
+  }
+  else
+  {
     node->nextNode = root;
     root->leftNode = node;
     queue->root = node;
@@ -34,19 +39,23 @@ int enqueue(Queue *queue, uint data){
   return 1;
 }
 
-uint dequeue(Queue *queue){
-  uint data;
+int dequeue(Queue *queue)
+{
+  int data;
   Node *end = queue->end;
   Node *root = queue->root;
-  if(!end && !root)
+  if (!end && !root)
     return 0;
 
   data = end->data;
 
-  if(root == end){
+  if (root == end)
+  {
     queue->root = NULL;
     queue->end = NULL;
-  } else{
+  }
+  else
+  {
     queue->end = end->leftNode;
   }
 
@@ -54,11 +63,13 @@ uint dequeue(Queue *queue){
   return data;
 }
 
-int isEmpty(Queue *queue){
+int isEmpty(Queue *queue)
+{
   return queue->root == NULL;
 }
 
-void cleanQueue(Queue *queue){
+void cleanQueue(Queue *queue)
+{
   Node *node = queue->root;
 
   while (node)

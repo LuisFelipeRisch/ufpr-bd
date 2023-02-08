@@ -6,7 +6,7 @@
 
 typedef struct Node
 {
-  uint data;
+  int data;
   struct Node *nextNode;
   struct Node *leftNode;
 } Node;
@@ -18,8 +18,8 @@ typedef struct
 } Queue;
 
 Queue *initQueue();
-int enqueue(Queue *queue, uint data);
-uint dequeue(Queue *queue);
+int enqueue(Queue *queue, int data);
+int dequeue(Queue *queue);
 int isEmpty(Queue *queue);
 void cleanQueue(Queue *queue);
 
